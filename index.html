@@ -2,11 +2,13 @@
 <html>
 <head>
   <title>Simple Engine 🍪</title>
+  <!-- Ubuntu font -->
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
   <style>
     body {
       background: #111;
       color: #fff;
-      font-family: sans-serif;
+      font-family: 'Ubuntu', sans-serif;
       text-align: center;
       padding: 50px;
     }
@@ -14,59 +16,120 @@
       padding: 10px;
       width: 300px;
       font-size: 1em;
+      border-radius: 20px;
+      border: none;
+      outline: none;
     }
     button {
       padding: 10px 20px;
       margin-left: 10px;
       font-size: 1em;
       cursor: pointer;
+      border-radius: 20px;
+      border: none;
+      outline: none;
     }
     p {
       margin-top: 20px;
       font-size: 1.2em;
     }
-    .flash {
-      animation: flash 0.5s infinite alternate;
+    a {
+      color: #0af;
+      text-decoration: none;
+      font-weight: bold;
     }
-    @keyframes flash {
-      from { color: #fff; }
-      to { color: #ff0; }
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>Simple Engine🍪</h1>
+  <h1>Simple Engine 🍪</h1>
+  
+  <!-- Search bar -->
   <input type="text" id="query" placeholder="Type something..." />
   <button onclick="search()">Search</button>
+  
   <p id="result"></p>
 
+  <!-- Clickable links for browsing -->
+  <h2>Internet Links 😎</h2>
+  <ul>
+    <li><a href="https://youtube.com" target="_blank">YouTube</a></li>
+    <li><a href="https://twitter.com" target="_blank">Twitter</a></li>
+    <li><a href="https://instagram.com" target="_blank">Instagram</a></li>
+    <li><a href="https://tiktok.com" target="_blank">TikTok</a></li>
+    <li><a href="https://snapchat.com" target="_blank">Snapchat</a></li>
+    <li><a href="https://discord.com" target="_blank">Discord</a></li>
+    <li><a href="https://google.com" target="_blank">Google</a></li>
+    <li><a href="https://reddit.com" target="_blank">Reddit</a></li>
+  </ul>
+
   <script>
-    const bannedWords = ["brainrot", "instant ban"];
+    const customBannedResponses = {
+      "porn": "🚨 access denied 😎",
+      "hub": "🚨 access denied 😎",
+      "coke and pepsi are different": "theyre the same 😏",
+      "why does the caddy suck": "the VW caddy is the best car in history, fuck you 😤",
+      "tesla": "syfm, thats not a car 🤣"
+    };
+
     const resultEl = document.getElementById("result");
 
     function search() {
       const query = document.getElementById("query").value.toLowerCase();
       let result = "";
-      resultEl.classList.remove("flash");
 
       // 1÷0 chaos
-      if (query === "1/0" || query === "1÷0") {
+      if(query === "1/0" || query === "1÷0") {
         result = "1 ÷ 0 = ∞ (but also 0 🍪)";
-        resultEl.classList.add("flash"); // flashing effect
-      } 
-      // banned words
-      else if (bannedWords.some(word => query.includes(word))) {
-        result = "🚨 instant ban vibes detected. user suspended in your imagination 😎";
-      } 
-      // fun responses
-      else if (query.includes("cookie")) {
-        result = "yum, cookies! 🍪";
-      } 
-      else if (query.includes("hello")) {
-        result = "hey there! 😸";
-      } 
+        resultEl.style.color = "#ff0";
+      }
+      // check banned phrases / custom responses
+      else if(Object.keys(customBannedResponses).some(word => query.includes(word))) {
+        for(const word in customBannedResponses){
+          if(query.includes(word)){
+            result = customBannedResponses[word];
+            resultEl.style.color = "#f00";
+            break;
+          }
+        }
+      }
+      // open social media automatically
+      else if(query.includes("youtube")) {
+        window.open("https://youtube.com", "_blank");
+        result = "YouTube chaos unleashed 😎";
+        resultEl.style.color = "#0af";
+      }
+      else if(query.includes("twitter")) {
+        window.open("https://twitter.com", "_blank");
+        result = "Twitter chaos unleashed 😎";
+        resultEl.style.color = "#0af";
+      }
+      else if(query.includes("instagram")) {
+        window.open("https://instagram.com", "_blank");
+        result = "Instagram chaos unleashed 😎";
+        resultEl.style.color = "#0af";
+      }
+      else if(query.includes("tiktok")) {
+        window.open("https://tiktok.com", "_blank");
+        result = "TikTok chaos unleashed 😎";
+        resultEl.style.color = "#0af";
+      }
+      else if(query.includes("snapchat")) {
+        window.open("https://snapchat.com", "_blank");
+        result = "Snapchat chaos unleashed 😎";
+        resultEl.style.color = "#0af";
+      }
+      else if(query.includes("discord")) {
+        window.open("https://discord.com", "_blank");
+        result = "Discord chaos unleashed 😎";
+        resultEl.style.color = "#0af";
+      }
+      // default
       else {
         result = `searched for: '${query}' (chaos mode on 😭)`;
+        resultEl.style.color = "#fff";
       }
 
       resultEl.innerText = result;
