@@ -43,27 +43,16 @@
     }
   </style>
 </head>
+
 <body>
   <h1>Simple Engine 🍪</h1>
-  
+
   <!-- Search bar -->
   <input type="text" id="query" placeholder="Type something..." />
   <button onclick="search()">Search</button>
-  
+
   <p id="result"></p>
 
-  <!-- Clickable links for browsing -->
-  <h2>Internet Links 😎</h2>
-  <ul>
-    <li><a href="https://youtube.com" target="_blank">YouTube</a></li>
-    <li><a href="https://twitter.com" target="_blank">Twitter</a></li>
-    <li><a href="https://instagram.com" target="_blank">Instagram</a></li>
-    <li><a href="https://tiktok.com" target="_blank">TikTok</a></li>
-    <li><a href="https://snapchat.com" target="_blank">Snapchat</a></li>
-    <li><a href="https://discord.com" target="_blank">Discord</a></li>
-    <li><a href="https://google.com" target="_blank">Google</a></li>
-    <li><a href="https://reddit.com" target="_blank">Reddit</a></li>
-  </ul>
 
   <script>
     const customBannedResponses = {
@@ -81,59 +70,79 @@
       let result = "";
 
       // 1÷0 chaos
-      if(query === "1/0" || query === "1÷0") {
+      if (query === "1/0" || query === "1÷0") {
         result = "1 ÷ 0 = ∞ (but also 0 🍪)";
         resultEl.style.color = "#ff0";
       }
-      // check banned phrases / custom responses
-      else if(Object.keys(customBannedResponses).some(word => query.includes(word))) {
-        for(const word in customBannedResponses){
-          if(query.includes(word)){
+
+      // banned/custom responses
+      else if (Object.keys(customBannedResponses).some(word => query.includes(word))) {
+        for (const word in customBannedResponses) {
+          if (query.includes(word)) {
             result = customBannedResponses[word];
             resultEl.style.color = "#f00";
             break;
           }
         }
       }
-      // open social media automatically
-      else if(query.includes("youtube")) {
+
+      // OG social media auto-open (by name)
+      else if (query.includes("youtube")) {
         window.open("https://youtube.com", "_blank");
         result = "YouTube chaos unleashed 😎";
         resultEl.style.color = "#0af";
       }
-      else if(query.includes("twitter")) {
+      else if (query.includes("twitter")) {
         window.open("https://twitter.com", "_blank");
         result = "Twitter chaos unleashed 😎";
         resultEl.style.color = "#0af";
       }
-      else if(query.includes("instagram")) {
+      else if (query.includes("instagram")) {
         window.open("https://instagram.com", "_blank");
         result = "Instagram chaos unleashed 😎";
         resultEl.style.color = "#0af";
       }
-      else if(query.includes("tiktok")) {
+      else if (query.includes("tiktok")) {
         window.open("https://tiktok.com", "_blank");
         result = "TikTok chaos unleashed 😎";
         resultEl.style.color = "#0af";
       }
-      else if(query.includes("snapchat")) {
+      else if (query.includes("snapchat")) {
         window.open("https://snapchat.com", "_blank");
         result = "Snapchat chaos unleashed 😎";
         resultEl.style.color = "#0af";
       }
-      else if(query.includes("discord")) {
+      else if (query.includes("discord")) {
         window.open("https://discord.com", "_blank");
         result = "Discord chaos unleashed 😎";
         resultEl.style.color = "#0af";
       }
-      // default
+
+      // AUTO OPEN ANY WEBSITE TYPED
       else {
-        result = `searched for: '${query}' (chaos mode on 😭)`;
-        resultEl.style.color = "#fff";
+        // if the input contains a dot and no spaces → probably a website
+        if (query.includes(".") && !query.includes(" ")) {
+
+          let url = query;
+
+          // add https:// if needed
+          if (!query.startsWith("http://") && !query.startsWith("https://")) {
+            url = "https://" + query;
+          }
+
+          window.open(url, "_blank");
+          result = "opening " + url + " 😎";
+          resultEl.style.color = "#0af";
+        } 
+        else {
+          result = `searched for: '${query}' (chaos mode on 😭)`;
+          resultEl.style.color = "#fff";
+        }
       }
 
       resultEl.innerText = result;
     }
   </script>
+
 </body>
 </html>
