@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Simple Engine - Simple Search Engine</title>
-    <meta name="description" content="Simple Engine is a basic search engine with social shortcuts, fun alerts, and live Google CSE results."
-<meta name="google-site-verification" content="7RfELVgSj9MOOtlKMuE2tX0aVuzMdu_N5KuLtRXbkq0" />
-
-    <script async src="https://cse.google.com/cse.js?cx=d3bb0f8c783114941">
-</script>
-<div class="gcse-search"></div>
     <meta charset="UTF-8">
+    <title>Simple Engine - Simple Search Engine</title>
+    <meta name="description" content="Simple Engine is a basic search engine with social shortcuts, fun alerts, and live Google CSE results.">
+    <meta name="google-site-verification" content="7RfELVgSj9MOOtlKMuE2tX0aVuzMdu_N5KuLtRXbkq0" />
 
-    <! "googlea9dc1f85996dc2b8.html" /> -->
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://i.imgur.com/zp6RBXx.png">
 
-    <title>simple engine</title>
+    <!-- Google CSE -->
+    <script async src="https://cse.google.com/cse.js?cx=d3bb0f8c783114941"></script>
 
     <!-- Ubuntu Font -->
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
@@ -23,6 +21,12 @@
             font-family: 'Ubuntu', sans-serif;
             text-align: center;
             padding-top: 100px;
+        }
+
+        img.logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 20px;
         }
 
         .search-box {
@@ -58,6 +62,9 @@
 
     <h1>simple engine</h1>
 
+    <!-- Logo -->
+    <img src="https://i.imgur.com/zp6RBXx.png" alt="Simple Engine Logo" class="logo">
+
     <input id="search" class="search-box" placeholder="search something..." />
 
     <div class="socials">
@@ -68,6 +75,8 @@
         <button class="btn" onclick="openSite('https://snapchat.com')">Snapchat</button>
         <button class="btn" onclick="openSite('https://discord.com')">Discord</button>
     </div>
+
+    <div class="gcse-search"></div>
 
     <script>
         function openSite(url) {
@@ -105,7 +114,7 @@
                     return;
                 }
 
-                // Otherwise → search it on google
+                // Otherwise → search it on Google
                 window.open("https://www.google.com/search?q=" + encodeURIComponent(q), "_blank");
             }
         });
@@ -113,9 +122,3 @@
 
 </body>
 </html>
-
-
-
-
-
-
