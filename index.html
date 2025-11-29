@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Engine 🍪</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    input {
+      padding: 10px;
+      width: 300px;
+      font-size: 1em;
+    }
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    p {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    .flash {
+      animation: flash 0.5s infinite alternate;
+    }
+    @keyframes flash {
+      from { color: #fff; }
+      to { color: #ff0; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Simple Engine🍪</h1>
+  <input type="text" id="query" placeholder="Type something..." />
+  <button onclick="search()">Search</button>
+  <p id="result"></p>
+
+  <script>
+    const bannedWords = ["brainrot", "instant ban"];
+    const resultEl = document.getElementById("result");
+
+    function search() {
+      const query = document.getElementById("query").value.toLowerCase();
+      let result = "";
+      resultEl.classList.remove("flash");
+
+      // 1÷0 chaos
+      if (query === "1/0" || query === "1÷0") {
+        result = "1 ÷ 0 = ∞ (but also 0 🍪)";
+        resultEl.classList.add("flash"); // flashing effect
+      } 
+      // banned words
+      else if (bannedWords.some(word => query.includes(word))) {
+        result = "🚨 instant ban vibes detected. user suspended in your imagination 😎";
+      } 
+      // fun responses
+      else if (query.includes("cookie")) {
+        result = "yum, cookies! 🍪";
+      } 
+      else if (query.includes("hello")) {
+        result = "hey there! 😸";
+      } 
+      else {
+        result = `searched for: '${query}' (chaos mode on 😭)`;
+      }
+
+      resultEl.innerText = result;
+    }
+  </script>
+</body>
+</html>
