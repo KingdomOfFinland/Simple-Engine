@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Puff Engine - Simple Search Engine</title>
+    <meta name="description" content="Puff Engine is a basic search engine with social shortcuts, fun alerts, and live Google CSE results.">
+    <meta name="google-site-verification" content="7RfELVgSj9MOOtlKMuE2tX0aVuzMdu_N5KuLtRXbkq0" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://cdn.discordapp.com/attachments/1358894285562314752/1444398355785715894/06c2e984632e3f615237409d6262b22a.png?ex=692c904b&is=692b3ecb&hm=d38353681b725689edee274063fc68ed45e97a8a9c1555ababcc6f7dc1ef0d5a&.png">
+
+    <!-- Google CSE -->
+    <script async src="https://cse.google.com/cse.js?cx=d3bb0f8c783114941"></script>
+
+    <!-- Ubuntu Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f2f2f2;
+            font-family: 'Ubuntu', sans-serif;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        img.logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            width: 400px;
+            padding: 12px;
+            border-radius: 25px;
+            border: 2px solid #aaa;
+            outline: none;
+            font-size: 18px;
+        }
+
+        .socials {
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            background-color: #ddd;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Simple Engine</h1>
+
+    <!-- Logo -->
+    <img src="https://i.imgur.com/zp6RBXx.png" alt="Simple Engine Logo" class="logo">
+
+    <input id="search" class="search-box" placeholder="search something..." />
+
+    <div class="socials">
+        <button class="btn" onclick="openSite('https://youtube.com')">YouTube</button>
+        <button class="btn" onclick="openSite('https://twitter.com')">Twitter</button>
+        <button class="btn" onclick="openSite('https://instagram.com')">Instagram</button>
+        <button class="btn" onclick="openSite('https://tiktok.com')">TikTok</button>
+        <button class="btn" onclick="openSite('https://snapchat.com')">Snapchat</button>
+        <button class="btn" onclick="openSite('https://discord.com')">Discord</button>
+    </div>
+
+    <div class="gcse-search"></div>
+
+    <script>
+        function openSite(url) {
+            window.open(url, "_blank");
+        }
+
+        document.getElementById("search").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                let q = this.value.toLowerCase();
+
+                // Banned words filters
+                if (q.includes("porn") || q.includes("hub" || q.includes("PornHub" ))) {
+                    alert("no.");
+                    return;
+                }
+
+                if (q.includes("coke") && q.includes("pepsi")) {
+                    alert("theyre the same");
+                    return;
+                }
+
+                if (q.includes("why does the caddy suck")) {
+                    alert("the VW caddy is the best car in history, fuck you");
+                    return;
+                }
+
+                if (q.includes("tesla")) {
+                    alert("syfm, thats not a car");
+                    return;
+                }
+
+                // If it's a real link → open directly
+                if (q.startsWith("http://") || q.startsWith("https://")) {
+                    window.open(q, "_blank");
+                    return;
+                }
+
+                // Otherwise → search it on Google
+                window.open("https://www.google.com/search?q=" + encodeURIComponent(q), "_blank");
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+
+
