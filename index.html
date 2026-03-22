@@ -4,114 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fish Engine | Haku koko internetistä</title>
-    
     <meta name="description" content="Fish Engine - Haku koko internetistä. Fast, clean, and zero Tesla nonsense.">
     <meta name="google-site-verification" content="7RfELVgSj9MOOtlKMuE2tX0aVuzMdu_N5KuLtRXbkq0" />
-
-    <script async src="https://cse.google.com/cse.js?cx=d3bb0f8c783114941"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
-
     <style>
-        :root {
-            --bg: #f2f2f2;
-            --text: #333;
-            --box-bg: #fff;
-            --btn-bg: #ddd;
-        }
-
-        [data-theme="dark"] {
-            --bg: #1a1a1a;
-            --text: #f2f2f2;
-            --box-bg: #333;
-            --btn-bg: #444;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Ubuntu', sans-serif;
-            text-align: center;
-            padding-top: 50px;
-            transition: 0.3s;
-        }
-
-        .header-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        img.logo {
-            width: 150px;
-            height: auto;
-            margin-bottom: 10px;
-            /* Placeholder filter if you don't have a dark logo yet */
-            filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.2));
-        }
-
-        .search-box {
-            width: 80%;
-            max-width: 500px;
-            padding: 15px;
-            border-radius: 30px;
-            border: 2px solid #aaa;
-            outline: none;
-            font-size: 18px;
-            background: var(--box-bg);
-            color: var(--text);
-        }
-
-        .socials {
-            margin-top: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            background-color: var(--btn-bg);
-            color: var(--text);
-            font-size: 14px;
-            transition: 0.2s;
-        }
-
-        .btn:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
-        }
-
-        #theme-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-
-        .footer-text {
-            margin-top: 30px;
-            font-size: 12px;
-            opacity: 0.6;
-        }
+        :root { --bg: #f2f2f2; --text: #333; --box-bg: #fff; --btn-bg: #ddd; }
+        [data-theme="dark"] { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --btn-bg: #444; }
+        body { background: var(--bg); color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; padding-top: 50px; transition: 0.3s; }
+        .header-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        img.logo { width: 150px; height: auto; margin-bottom: 10px; filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.2)); }
+        .search-box { width: 80%; max-width: 500px; padding: 15px; border-radius: 30px; border: 2px solid #aaa; outline: none; font-size: 18px; background: var(--box-bg); color: var(--text); }
+        .socials { margin-top: 25px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .btn { padding: 10px 20px; border-radius: 20px; border: none; cursor: pointer; background-color: var(--btn-bg); color: var(--text); font-size: 14px; transition: 0.2s; }
+        .btn:hover { opacity: 0.8; transform: scale(1.05); }
+        .top-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; }
+        .footer-text { margin-top: 30px; font-size: 12px; opacity: 0.6; }
     </style>
 </head>
-
 <body>
-
-    <script async src="https://cse.google.com/cse.js?cx=d3bb0f8c783114941">
-</script>
-<div class="gcse-searchbox-only"></div>
-
-    <button id="theme-toggle" class="btn">🌙 Mode</button>
+    <div class="top-controls">
+        <button id="lang-toggle" class="btn">🇫🇮 FI</button>
+        <button id="theme-toggle" class="btn">🌙 Mode</button>
+    </div>
 
     <div class="header-container">
-        <h1>Fish Engine</h1>
-        <p><i>Haku koko internetistä</i></p>
+        <h1 id="title">Fish Engine</h1>
+        <p><i id="subtitle">Haku koko internetistä</i></p>
         <img src="https://i.imgur.com/pnrxkA8.png" class="logo" alt="Fish Logo">
     </div>
 
@@ -126,20 +44,21 @@
         <button class="btn" onclick="openSite('https://github.com/KingdomOfFinland/Simple-Engine/')">Origin</button>
     </div>
 
-    <div class="gcse-searchresults-only"></div>
-
     <p class="footer-text">Done Eht | Valkeakoski Engineering</p>
 
     <script>
-        // --- Theme Logic ---
         const themeBtn = document.getElementById('theme-toggle');
-        const currentTheme = localStorage.getItem('theme');
+        const langBtn = document.getElementById('lang-toggle');
+        const searchInput = document.getElementById('search');
+        const subtitle = document.getElementById('subtitle');
+        
+        let currentLang = "en";
 
-        if (currentTheme === 'dark') {
+        // --- Theme Logic ---
+        if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
             themeBtn.innerHTML = "☀️ Light";
         }
-
         themeBtn.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
             if (theme === 'dark') {
@@ -153,40 +72,41 @@
             }
         });
 
-        // --- Search Logic ---
-        function openSite(url) {
-            window.open(url, "_blank");
-        }
+        // --- Finnish Converter Logic ---
+        langBtn.addEventListener('click', () => {
+            if (currentLang === "en") {
+                currentLang = "fi";
+                langBtn.innerHTML = "🇬🇧 EN";
+                subtitle.innerHTML = "Haku koko internetistä";
+                searchInput.placeholder = "Etsi jotain, kamu...";
+            } else {
+                currentLang = "en";
+                langBtn.innerHTML = "🇫🇮 FI";
+                subtitle.innerHTML = "Search the whole internet";
+                searchInput.placeholder = "Search something, mate...";
+            }
+        });
+
+        function openSite(url) { window.open(url, "_blank"); }
 
         document.getElementById("search").addEventListener("keydown", function (e) {
             if (e.key === "Enter") {
                 let q = this.value.toLowerCase().trim();
-
                 if (!q) return;
 
-                // Easter Eggs & Filters
-                if (q.includes("porn") || q.includes("ph")) {
-                    alert("No, weirdo.");
-                    return;
-                }
-                if (q.includes("coke") && q.includes("pepsi")) {
-                    alert("They're the same.");
-                    return;
-                }
-                if (q.includes("why does the caddy suck")) {
-                    alert("The VW Caddy is the best car in history, keep coping.");
-                    return;
-                }
+                // Localized Easter Eggs
                 if (q.includes("tesla")) {
-                    alert("SYFM, that's not a car.");
+                    alert(currentLang === "fi" ? "Turpa kiinni, tuo ei ole auto." : "SYFM, that's not a car.");
+                    return;
+                }
+                if (q.includes("caddy")) {
+                    alert(currentLang === "fi" ? "VW Caddy on historian paras auto, lopeta vinkuminen." : "The VW Caddy is the best car in history, keep coping.");
                     return;
                 }
 
-                // Redirect to Google
                 window.open("https://www.google.com/search?q=" + encodeURIComponent(q), "_blank");
             }
         });
     </script>
-
 </body>
 </html>
