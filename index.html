@@ -3,110 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | Haku koko internetistä</title>
-    <meta name="description" content="Fish Engine - Haku koko internetistä. Fast, clean, and zero Tesla nonsense.">
-    <meta name="google-site-verification" content="7RfELVgSj9MOOtlKMuE2tX0aVuzMdu_N5KuLtRXbkq0" />
+    <title>Fish Engine | Nuclear Security</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f2f2f2; --text: #333; --box-bg: #fff; --btn-bg: #ddd; }
+        :root { --bg: #f2f2f2; --text: #333; --box-bg: #fff; --btn-bg: #ddd; --accent: #00ff00; }
         [data-theme="dark"] { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --btn-bg: #444; }
-        body { background: var(--bg); color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; padding-top: 50px; transition: 0.3s; }
-        .header-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
-        img.logo { width: 150px; height: auto; margin-bottom: 10px; filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.2)); }
+        
+        body { background: var(--bg); background-size: cover; background-position: center; background-attachment: fixed; color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; padding-top: 50px; transition: 0.3s; min-height: 100vh; margin: 0; }
+
+        .top-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+        .header-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; display: inline-flex; backdrop-filter: blur(5px); border: 1px solid var(--accent); }
+        
+        .pfp-mini { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
         .search-box { width: 80%; max-width: 500px; padding: 15px; border-radius: 30px; border: 2px solid #aaa; outline: none; font-size: 18px; background: var(--box-bg); color: var(--text); }
-        .socials { margin-top: 25px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         .btn { padding: 10px 20px; border-radius: 20px; border: none; cursor: pointer; background-color: var(--btn-bg); color: var(--text); font-size: 14px; transition: 0.2s; }
         .btn:hover { opacity: 0.8; transform: scale(1.05); }
-        .top-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; }
-        .footer-text { margin-top: 30px; font-size: 12px; opacity: 0.6; }
+
+        /* Modal */
+        #account-modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
+        .modal-content { background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 25px; width: 320px; border-radius: 15px; border: 3px solid #ff4444; box-shadow: 0 0 20px #ff4444; }
+        .modal-content input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #777; }
+
+        .footer-text { margin-top: 30px; font-size: 12px; opacity: 0.8; background: rgba(0,0,0,0.4); display: inline-block; padding: 5px 10px; border-radius: 10px; color: white; }
     </style>
 </head>
 <body>
+
     <div class="top-controls">
-        <button id="lang-toggle" class="btn">🇫🇮 FI</button>
+        <img id="pfp-display" src="https://i.imgur.com/pnrxkA8.png" class="pfp-mini" alt="PFP">
+        <button id="account-toggle" class="btn">👤 <span id="user-display">Login</span></button>
+        <button id="bg-toggle" class="btn">🖼️ BG</button>
+        <button id="lang-toggle" class="btn">🌐 Lang</button>
         <button id="theme-toggle" class="btn">🌙 Mode</button>
     </div>
 
+    <div id="account-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">☢️ Fish ID Console</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="email" id="email" placeholder="Email">
+            <input type="url" id="pfp-url" placeholder="Profile Pic URL">
+            <input type="password" id="password" placeholder="Password">
+            <p style="font-size:10px; color:red;">WARNING: 3 WRONG PASSWORDS = SELF DESTRUCT</p>
+            <button class="btn" style="background:var(--accent);" onclick="saveAccount()">Save & Lock</button>
+            <button class="btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
     <div class="header-container">
-        <h1 id="title">Fish Engine</h1>
+        <h1>FISH ENGINE</h1>
         <p><i id="subtitle">Haku koko internetistä</i></p>
-        <img src="https://i.imgur.com/pnrxkA8.png" class="logo" alt="Fish Logo">
+        <img src="https://i.imgur.com/pnrxkA8.png" style="width:120px;" alt="Fish Logo">
     </div>
 
-    <input id="search" class="search-box" placeholder="Search something, mate..." autofocus />
+    <br>
+    <input id="search" class="search-box" placeholder="Search..." autofocus />
 
-    <div class="socials">
-        <button class="btn" onclick="openSite('https://youtube.com')">YouTube</button>
-        <button class="btn" onclick="openSite('https://twitter.com')">Twitter</button>
-        <button class="btn" onclick="openSite('https://instagram.com')">Instagram</button>
-        <button class="btn" onclick="openSite('https://tiktok.com')">TikTok</button>
-        <button class="btn" onclick="openSite('https://discord.com')">Discord</button>
-        <button class="btn" onclick="openSite('https://github.com/KingdomOfFinland/Simple-Engine/')">Origin</button>
-    </div>
-
-    <p class="footer-text">Done Eht | Valkeakoski Engineering</p>
+    <p class="footer-text">Nuclear Edition | <span id="lock-status">🔓 Unlocked</span></p>
 
     <script>
-        const themeBtn = document.getElementById('theme-toggle');
-        const langBtn = document.getElementById('lang-toggle');
-        const searchInput = document.getElementById('search');
-        const subtitle = document.getElementById('subtitle');
+        const accBtn = document.getElementById('account-toggle');
+        const userDisp = document.getElementById('user-display');
+        const pfpDisp = document.getElementById('pfp-display');
+        const lockStat = document.getElementById('lock-status');
         
-        let currentLang = "en";
+        let attempts = 0;
+        let isLocked = false;
 
-        // --- Theme Logic ---
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            themeBtn.innerHTML = "☀️ Light";
+        // --- Core Account Logic ---
+        accBtn.onclick = () => document.getElementById('account-modal').style.display = 'block';
+        function closeModal() { document.getElementById('account-modal').style.display = 'none'; }
+
+        function saveAccount() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const pic = document.getElementById('pfp-url').value;
+            
+            if (u && p) {
+                localStorage.setItem('fishUser', u);
+                localStorage.setItem('fishPass', btoa(p));
+                if(pic) localStorage.setItem('fishPFP', pic);
+                alert("Account Ready. Don't forget your password, mate.");
+                location.reload();
+            } else {
+                alert("Need user and pass!");
+            }
         }
-        themeBtn.addEventListener('click', () => {
-            let theme = document.documentElement.getAttribute('data-theme');
-            if (theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'light');
-                themeBtn.innerHTML = "🌙 Dark";
-                localStorage.setItem('theme', 'light');
+
+        function verifyIdentity(action) {
+            if (!localStorage.getItem('fishPass')) return true; 
+            
+            let p = prompt("Enter Password to " + action + ":");
+            if (btoa(p) === localStorage.getItem('fishPass')) {
+                attempts = 0;
+                return true;
             } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                themeBtn.innerHTML = "☀️ Light";
-                localStorage.setItem('theme', 'dark');
+                attempts++;
+                alert("WRONG. Attempts: " + attempts + "/3");
+                if (attempts >= 3) {
+                    alert("SELF DESTRUCT INITIATED.");
+                    localStorage.clear();
+                    window.location.href = "https://www.google.com/search?q=how+to+be+less+shabby";
+                }
+                return false;
             }
-        });
+        }
 
-        // --- Finnish Converter Logic ---
-        langBtn.addEventListener('click', () => {
-            if (currentLang === "en") {
-                currentLang = "fi";
-                langBtn.innerHTML = "🇬🇧 EN";
-                subtitle.innerHTML = "Haku koko internetistä";
-                searchInput.placeholder = "Etsi jotain, kamu...";
-            } else {
-                currentLang = "en";
-                langBtn.innerHTML = "🇫🇮 FI";
-                subtitle.innerHTML = "Search the whole internet";
-                searchInput.placeholder = "Search something, mate...";
+        // --- Settings Load ---
+        function loadSettings() {
+            const savedUser = localStorage.getItem('fishUser');
+            const savedPFP = localStorage.getItem('fishPFP');
+            const savedBG = localStorage.getItem('customBG');
+
+            if (savedUser) {
+                userDisp.innerText = savedUser;
+                isLocked = true;
+                lockStat.innerText = "🔒 SECURED";
             }
-        });
+            if (savedPFP) pfpDisp.src = savedPFP;
+            if (savedBG) document.body.style.backgroundImage = `url('${savedBG}')`;
+        }
 
-        function openSite(url) { window.open(url, "_blank"); }
+        // --- Controls ---
+        document.getElementById('bg-toggle').onclick = () => {
+            if (verifyIdentity("change background")) {
+                let url = prompt("Background URL:");
+                if (url) { 
+                    document.body.style.backgroundImage = `url('${url}')`; 
+                    localStorage.setItem('customBG', url); 
+                }
+            }
+        };
 
-        document.getElementById("search").addEventListener("keydown", function (e) {
+        document.getElementById('theme-toggle').onclick = () => {
+            let d = document.documentElement;
+            let mode = d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            d.setAttribute('data-theme', mode);
+            localStorage.setItem('theme', mode);
+        };
+
+        document.getElementById("search").onkeydown = (e) => {
             if (e.key === "Enter") {
-                let q = this.value.toLowerCase().trim();
-                if (!q) return;
-
-                // Localized Easter Eggs
-                if (q.includes("tesla")) {
-                    alert(currentLang === "fi" ? "Turpa kiinni, tuo ei ole auto." : "SYFM, that's not a car.");
-                    return;
-                }
-                if (q.includes("caddy")) {
-                    alert(currentLang === "fi" ? "VW Caddy on historian paras auto, lopeta vinkuminen." : "The VW Caddy is the best car in history, keep coping.");
-                    return;
-                }
-
-                window.open("https://www.google.com/search?q=" + encodeURIComponent(q), "_blank");
+                let q = e.target.value.trim();
+                if (q) window.open("https://www.google.com/search?q=" + encodeURIComponent(q), "_blank");
             }
-        });
+        };
+
+        loadSettings();
     </script>
 </body>
 </html>
