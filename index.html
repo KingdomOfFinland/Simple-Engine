@@ -3,153 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | Nuclear Security</title>
-    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>Fish Engine | Hae Koko Internetistä!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f2f2f2; --text: #333; --box-bg: #fff; --btn-bg: #ddd; --accent: #00ff00; }
-        [data-theme="dark"] { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --btn-bg: #444; }
+        :root { --bg: #f2f2f2; --text: #333; --box-bg: #fff; --accent: #00ff00; }
+        [data-theme="dark"] { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; }
         
-        body { background: var(--bg); background-size: cover; background-position: center; background-attachment: fixed; color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; padding-top: 50px; transition: 0.3s; min-height: 100vh; margin: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; padding-top: 80px; transition: 0.3s; }
 
-        .top-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
-        .header-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; display: inline-flex; backdrop-filter: blur(5px); border: 1px solid var(--accent); }
+        /* Classic Header */
+        .logo-area img { width: 180px; margin-bottom: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        h1 { font-size: 2.5em; margin: 0; letter-spacing: -1px; }
         
-        .pfp-mini { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
-        .search-box { width: 80%; max-width: 500px; padding: 15px; border-radius: 30px; border: 2px solid #aaa; outline: none; font-size: 18px; background: var(--box-bg); color: var(--text); }
-        .btn { padding: 10px 20px; border-radius: 20px; border: none; cursor: pointer; background-color: var(--btn-bg); color: var(--text); font-size: 14px; transition: 0.2s; }
-        .btn:hover { opacity: 0.8; transform: scale(1.05); }
+        /* The Search Box - THE OLD WAY */
+        .search-container { margin: 30px auto; width: 90%; max-width: 600px; }
+        .search-box { 
+            width: 100%; padding: 15px 25px; border-radius: 50px; 
+            border: 1px solid #ccc; font-size: 18px; outline: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: var(--box-bg); color: var(--text);
+        }
+        .search-box:focus { border-color: var(--accent); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
 
-        /* Modal */
-        #account-modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
-        .modal-content { background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 25px; width: 320px; border-radius: 15px; border: 3px solid #ff4444; box-shadow: 0 0 20px #ff4444; }
-        .modal-content input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #777; }
+        /* Socials - Clean Grid */
+        .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+        .s-btn { 
+            padding: 8px 16px; border-radius: 4px; border: 1px solid #ddd; 
+            background: #eee; cursor: pointer; font-size: 13px; color: #555;
+        }
+        .s-btn:hover { background: #e0e0e0; }
 
-        .footer-text { margin-top: 30px; font-size: 12px; opacity: 0.8; background: rgba(0,0,0,0.4); display: inline-block; padding: 5px 10px; border-radius: 10px; color: white; }
+        /* Hidden Controls (Keep it clean!) */
+        .admin-bar { position: fixed; bottom: 10px; right: 10px; display: flex; gap: 5px; opacity: 0.5; transition: 0.5s; }
+        .admin-bar:hover { opacity: 1; }
+        .mini-btn { padding: 5px 10px; font-size: 10px; border-radius: 3px; border: none; cursor: pointer; }
+
+        .footer { margin-top: 50px; font-size: 11px; color: #888; }
     </style>
 </head>
 <body>
 
-    <div class="top-controls">
-        <img id="pfp-display" src="https://i.imgur.com/pnrxkA8.png" class="pfp-mini" alt="PFP">
-        <button id="account-toggle" class="btn">👤 <span id="user-display">Login</span></button>
-        <button id="bg-toggle" class="btn">🖼️ BG</button>
-        <button id="lang-toggle" class="btn">🌐 Lang</button>
-        <button id="theme-toggle" class="btn">🌙 Mode</button>
+    <div class="logo-area">
+        <img src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
+        <h1>Fish Engine</h1>
+        <p id="subtitle">Haku koko internetistä</p>
     </div>
 
-    <div id="account-modal">
-        <div class="modal-content">
-            <h2 id="modal-title">☢️ Fish ID Console</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="email" id="email" placeholder="Email">
-            <input type="url" id="pfp-url" placeholder="Profile Pic URL">
-            <input type="password" id="password" placeholder="Password">
-            <p style="font-size:10px; color:red;">WARNING: 3 WRONG PASSWORDS = SELF DESTRUCT</p>
-            <button class="btn" style="background:var(--accent);" onclick="saveAccount()">Save & Lock</button>
-            <button class="btn" onclick="closeModal()">Close</button>
+    <div class="search-container">
+        <input type="text" id="search" class="search-box" placeholder="Etsi jotain..." autofocus>
+        
+        <div class="social-grid">
+            <button class="s-btn" onclick="openS('https://youtube.com/@tuna-fish-inwater')">Channel</button>
+            <button class="s-btn" onclick="openS('https://discord.com')">Discord</button>
+            <button class="s-btn" onclick="openS('https://github.com/KingdomOfFinland')">GitHub</button>
+            <button class="s-btn" onclick="openS('https://kick.com')">Kick</button>
         </div>
     </div>
 
-    <div class="header-container">
-        <h1>FISH ENGINE</h1>
-        <p><i id="subtitle">Haku koko internetistä</i></p>
-        <img src="https://i.imgur.com/pnrxkA8.png" style="width:120px;" alt="Fish Logo">
+    <div class="footer">
+        Done Eht | Valkeakoski Engineering | <span id="user-tag">Guest</span>
     </div>
 
-    <br>
-    <input id="search" class="search-box" placeholder="Search..." autofocus />
-
-    <p class="footer-text">Nuclear Edition | <span id="lock-status">🔓 Unlocked</span></p>
+    <div class="admin-bar">
+        <button class="mini-btn" id="lang-btn">🌐 FI</button>
+        <button class="mini-btn" id="theme-btn">🌙</button>
+        <button class="mini-btn" onclick="alert('Nuclear Mode: Active')">☢️</button>
+    </div>
 
     <script>
-        const accBtn = document.getElementById('account-toggle');
-        const userDisp = document.getElementById('user-display');
-        const pfpDisp = document.getElementById('pfp-display');
-        const lockStat = document.getElementById('lock-status');
+        // JS pysyy samana kuin aiemmin, mutta käyttöliittymä on nyt "Old School"
+        function openS(url) { window.open(url, '_blank'); }
         
-        let attempts = 0;
-        let isLocked = false;
-
-        // --- Core Account Logic ---
-        accBtn.onclick = () => document.getElementById('account-modal').style.display = 'block';
-        function closeModal() { document.getElementById('account-modal').style.display = 'none'; }
-
-        function saveAccount() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const pic = document.getElementById('pfp-url').value;
-            
-            if (u && p) {
-                localStorage.setItem('fishUser', u);
-                localStorage.setItem('fishPass', btoa(p));
-                if(pic) localStorage.setItem('fishPFP', pic);
-                alert("Account Ready. Don't forget your password, mate.");
-                location.reload();
-            } else {
-                alert("Need user and pass!");
-            }
-        }
-
-        function verifyIdentity(action) {
-            if (!localStorage.getItem('fishPass')) return true; 
-            
-            let p = prompt("Enter Password to " + action + ":");
-            if (btoa(p) === localStorage.getItem('fishPass')) {
-                attempts = 0;
-                return true;
-            } else {
-                attempts++;
-                alert("WRONG. Attempts: " + attempts + "/3");
-                if (attempts >= 3) {
-                    alert("SELF DESTRUCT INITIATED.");
-                    localStorage.clear();
-                    window.location.href = "https://www.google.com/search?q=how+to+be+less+shabby";
-                }
-                return false;
-            }
-        }
-
-        // --- Settings Load ---
-        function loadSettings() {
-            const savedUser = localStorage.getItem('fishUser');
-            const savedPFP = localStorage.getItem('fishPFP');
-            const savedBG = localStorage.getItem('customBG');
-
-            if (savedUser) {
-                userDisp.innerText = savedUser;
-                isLocked = true;
-                lockStat.innerText = "🔒 SECURED";
-            }
-            if (savedPFP) pfpDisp.src = savedPFP;
-            if (savedBG) document.body.style.backgroundImage = `url('${savedBG}')`;
-        }
-
-        // --- Controls ---
-        document.getElementById('bg-toggle').onclick = () => {
-            if (verifyIdentity("change background")) {
-                let url = prompt("Background URL:");
-                if (url) { 
-                    document.body.style.backgroundImage = `url('${url}')`; 
-                    localStorage.setItem('customBG', url); 
-                }
-            }
+        document.getElementById('search').onkeydown = (e) => {
+            if(e.key === 'Enter') window.open('https://google.com/search?q=' + e.target.value, '_blank');
         };
 
-        document.getElementById('theme-toggle').onclick = () => {
+        // Teema-toggling
+        document.getElementById('theme-btn').onclick = () => {
             let d = document.documentElement;
-            let mode = d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            d.setAttribute('data-theme', mode);
-            localStorage.setItem('theme', mode);
+            d.setAttribute('data-theme', d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
         };
-
-        document.getElementById("search").onkeydown = (e) => {
-            if (e.key === "Enter") {
-                let q = e.target.value.trim();
-                if (q) window.open("https://www.google.com/search?q=" + encodeURIComponent(q), "_blank");
-            }
-        };
-
-        loadSettings();
     </script>
 </body>
 </html>
