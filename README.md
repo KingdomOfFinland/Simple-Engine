@@ -10,3 +10,6 @@ https://kingdomoffinland.github.io/Simple-Engine/#gsc.tab=0
 
 Alright so... ALSO. this uses less ram than google chrome tabs do, so this is approx like 50% faster than chrome, HOWEVER! i will make a browser for this search engine, will use chromium/waterfox
 The search engine is **NOT CLOUD-BASED** so expect not being able to sign in easier on other devices.
+
+**ACCOUNT FILE SAVE WAY**
+for this to work, please in the account maker/logger click export json, the json will save your profile info.
