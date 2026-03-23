@@ -3,47 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | Hae Koko Internetistä!</title>
+    <title>Fish Engine | Classic Master Sync</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #f2f2f2; --text: #333; --box-bg: #fff; --accent: #00ff00; }
         [data-theme="dark"] { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; }
         
-        body { background: var(--bg); color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; padding-top: 80px; transition: 0.3s; }
+        body { 
+            background: var(--bg); background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; padding-top: 80px; transition: 0.3s; min-height: 100vh;
+        }
 
-        /* Classic Header */
-        .logo-area img { width: 180px; margin-bottom: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .logo-area img { width: 180px; margin-bottom: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); border-radius: 50%; }
         h1 { font-size: 2.5em; margin: 0; letter-spacing: -1px; }
         
-        /* The Search Box - THE OLD WAY */
         .search-container { margin: 30px auto; width: 90%; max-width: 600px; }
         .search-box { 
             width: 100%; padding: 15px 25px; border-radius: 50px; 
             border: 1px solid #ccc; font-size: 18px; outline: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: var(--box-bg); color: var(--text);
         }
-        .search-box:focus { border-color: var(--accent); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
 
-        /* Socials - Clean Grid */
         .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
-        .s-btn { 
-            padding: 8px 16px; border-radius: 4px; border: 1px solid #ddd; 
-            background: #eee; cursor: pointer; font-size: 13px; color: #555;
-        }
-        .s-btn:hover { background: #e0e0e0; }
+        .s-btn { padding: 8px 16px; border-radius: 4px; border: 1px solid #ddd; background: #eee; cursor: pointer; font-size: 13px; color: #555; transition: 0.2s; border: none; }
+        .s-btn:hover { background: var(--accent); color: #000; }
 
-        /* Hidden Controls (Keep it clean!) */
-        .admin-bar { position: fixed; bottom: 10px; right: 10px; display: flex; gap: 5px; opacity: 0.5; transition: 0.5s; }
+        /* Admin & Modal */
+        .admin-bar { position: fixed; bottom: 10px; right: 10px; display: flex; gap: 5px; opacity: 0.7; transition: 0.5s; align-items: center; }
         .admin-bar:hover { opacity: 1; }
-        .mini-btn { padding: 5px 10px; font-size: 10px; border-radius: 3px; border: none; cursor: pointer; }
+        .mini-btn { padding: 5px 10px; font-size: 10px; border-radius: 30px; border: 1px solid #ccc; cursor: pointer; background: #eee; }
+        .pfp-small { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); object-fit: cover; cursor: pointer; }
 
-        .footer { margin-top: 50px; font-size: 11px; color: #888; }
+        #acc-modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(3px); }
+        .modal-box { background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 25px; width: 320px; border-radius: 15px; border: 2px solid #ff4444; text-align: left; }
+        .modal-box input { width: 93%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #777; font-family: monospace; }
+        
+        .captcha-box { background: #ddd; padding: 10px; border-radius: 5px; text-align: center; margin: 10px 0; color: #000; font-weight: bold; }
+
+        .footer { margin-top: 50px; font-size: 11px; color: #888; padding-bottom: 20px; }
     </style>
 </head>
 <body>
 
     <div class="logo-area">
-        <img src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
+        <img id="main-pfp" src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
         <h1>Fish Engine</h1>
         <p id="subtitle">Haku koko internetistä</p>
     </div>
@@ -53,9 +56,38 @@
         
         <div class="social-grid">
             <button class="s-btn" onclick="openS('https://youtube.com/@tuna-fish-inwater')">Channel</button>
+            <button class="s-btn" onclick="openS('https://youtube.com')">YouTube</button>
+            <button class="s-btn" onclick="openS('https://tiktok.com')">TikTok</button>
+            <button class="s-btn" onclick="openS('https://instagram.com')">Instagram</button>
+            <button class="s-btn" onclick="openS('https://twitch.tv')">Twitch</button>
             <button class="s-btn" onclick="openS('https://discord.com')">Discord</button>
             <button class="s-btn" onclick="openS('https://github.com/KingdomOfFinland')">GitHub</button>
             <button class="s-btn" onclick="openS('https://kick.com')">Kick</button>
+            <button class="s-btn" onclick="openS('https://simplecellsoftware.com/caustic3.html')">Caustic 3</button>
+        </div>
+    </div>
+
+    <div id="acc-modal">
+        <div class="modal-box">
+            <h3 style="margin-top:0;">☢️ Fish ID & Sync</h3>
+            <input type="text" id="u-in" placeholder="Username">
+            <input type="url" id="p-in" placeholder="PFP URL">
+            <input type="password" id="pass-in" placeholder="Password">
+            
+            <div class="captcha-box">
+                <span id="captcha-txt" style="letter-spacing: 5px; font-size: 20px;"></span>
+                <input type="text" id="captcha-in" placeholder="Enter Code" style="width:80%; margin-top:5px;">
+            </div>
+
+            <button class="s-btn" style="width:100%; margin-top:10px; background:var(--accent);" onclick="saveAcc()">Save locally</button>
+            
+            <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top: 10px;">
+                <p style="font-size:10px; margin:0 0 5px 0;">Transfer to another device:</p>
+                <button class="s-btn" style="font-size:10px; padding:5px;" onclick="exportData()">Export Profile</button>
+                <button class="s-btn" style="font-size:10px; padding:5px;" onclick="importData()">Import Profile</button>
+            </div>
+
+            <button class="s-btn" style="width:100%; margin-top:15px; background:#ddd;" onclick="toggleAcc()">Close</button>
         </div>
     </div>
 
@@ -64,23 +96,99 @@
     </div>
 
     <div class="admin-bar">
+        <img id="nav-pfp" src="https://i.imgur.com/pnrxkA8.png" class="pfp-small" onclick="toggleAcc()">
         <button class="mini-btn" id="lang-btn">🌐 FI</button>
+        <button class="mini-btn" id="bg-btn">🖼️ BG</button>
         <button class="mini-btn" id="theme-btn">🌙</button>
-        <button class="mini-btn" onclick="alert('Nuclear Mode: Active')">☢️</button>
     </div>
 
     <script>
-        // JS pysyy samana kuin aiemmin, mutta käyttöliittymä on nyt "Old School"
+        let attempts = 0;
+        let activeCaptcha = "";
+
         function openS(url) { window.open(url, '_blank'); }
-        
-        document.getElementById('search').onkeydown = (e) => {
-            if(e.key === 'Enter') window.open('https://google.com/search?q=' + e.target.value, '_blank');
+
+        function toggleAcc() { 
+            const m = document.getElementById('acc-modal');
+            if(m.style.display !== 'block') {
+                activeCaptcha = Math.random().toString(36).substring(2, 7).toUpperCase();
+                document.getElementById('captcha-txt').innerText = activeCaptcha;
+            }
+            m.style.display = (m.style.display === 'block') ? 'none' : 'block'; 
+        }
+
+        function saveAcc() {
+            const u = document.getElementById('u-in').value;
+            const p = document.getElementById('pass-in').value;
+            const pic = document.getElementById('p-in').value;
+            const cin = document.getElementById('captcha-in').value;
+
+            if(cin !== activeCaptcha) { alert("Captcha failed!"); toggleAcc(); return; }
+            if(u && p) {
+                localStorage.setItem('f_user', u);
+                localStorage.setItem('f_pass', btoa(p));
+                if(pic) localStorage.setItem('f_pfp', pic);
+                location.reload();
+            }
+        }
+
+        // --- Export/Import Logic ---
+        function exportData() {
+            const data = JSON.stringify(localStorage);
+            const blob = new Blob([data], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'fish_profile.json';
+            a.click();
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = e => {
+                const reader = new FileReader();
+                reader.readAsText(e.target.files[0]);
+                reader.onload = event => {
+                    const obj = JSON.parse(event.target.result);
+                    for (let key in obj) localStorage.setItem(key, obj[key]);
+                    alert("Profile loaded! Sync complete.");
+                    location.reload();
+                };
+            };
+            input.click();
+        }
+
+        // Rest of the logic (Security, BG, Theme) stays same as before...
+        document.getElementById('bg-btn').onclick = () => {
+            let p = prompt("Enter Password to change BG:");
+            if(btoa(p) === localStorage.getItem('f_pass') || !localStorage.getItem('f_pass')) {
+                let url = prompt("BG URL:");
+                if(url) { document.body.style.backgroundImage = `url('${url}')`; localStorage.setItem('f_bg', url); }
+            } else {
+                attempts++;
+                if(attempts >= 3) { localStorage.clear(); window.location.href="https://google.com"; }
+            }
         };
 
-        // Teema-toggling
         document.getElementById('theme-btn').onclick = () => {
             let d = document.documentElement;
-            d.setAttribute('data-theme', d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+            let m = d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            d.setAttribute('data-theme', m);
+            localStorage.setItem('f_theme', m);
+        };
+
+        document.getElementById('search').onkeydown = (e) => {
+            if(e.key === 'Enter') window.open('https://google.com/search?q=' + encodeURIComponent(e.target.value), '_blank');
+        };
+
+        window.onload = () => {
+            if(localStorage.getItem('f_user')) document.getElementById('user-tag').innerText = localStorage.getItem('f_user');
+            if(localStorage.getItem('f_pfp')) {
+                document.getElementById('main-pfp').src = localStorage.getItem('f_pfp');
+                document.getElementById('nav-pfp').src = localStorage.getItem('f_pfp');
+            }
+            if(localStorage.getItem('f_bg')) document.body.style.backgroundImage = `url('${localStorage.getItem('f_bg')}')`;
+            if(localStorage.getItem('f_theme')) document.documentElement.setAttribute('data-theme', localStorage.getItem('f_theme'));
         };
     </script>
 </body>
