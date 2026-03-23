@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISB v0.2.4</title>
+    <title>Fish Engine | FISB v0.2.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
@@ -101,7 +101,8 @@
             </div>
 
             <input type="text" id="u-in" placeholder="Username">
-            <input type="url" id="p-in" placeholder="PFP GIF/URL Link">
+            <input type="password" id="pass-in" placeholder="Fish ID / Password"> <input type="url" id="p-in" placeholder="PFP GIF/URL Link">
+            
             <button class="s-btn" style="width:100%; background:var(--accent); color:black; margin-top:10px;" onclick="saveAcc()">Save Profile</button>
             
             <div style="margin-top:20px; display:flex; gap:10px;">
@@ -137,7 +138,7 @@
         };
 
         function openS(url) { window.open(url, '_blank'); }
-        function toggleAcc() { const m = document.getElementById('acc-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; if(m.style.display === 'block') generateLangs(); }
+        function toggleAcc() { const m = document.getElementById('acc-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; if(m.style.display === 'block') { generateLangs(); loadInputs(); } }
 
         function generateLangs() {
             const container = document.getElementById('lang-list');
@@ -152,10 +153,18 @@
             });
         }
 
+        function loadInputs() {
+            if(localStorage.getItem('f_user')) document.getElementById('u-in').value = localStorage.getItem('f_user');
+            if(localStorage.getItem('f_pass')) document.getElementById('pass-in').value = localStorage.getItem('f_pass');
+            if(localStorage.getItem('f_pfp')) document.getElementById('p-in').value = localStorage.getItem('f_pfp');
+        }
+
         function saveAcc() {
             const u = document.getElementById('u-in').value;
+            const pass = document.getElementById('pass-in').value;
             const pic = document.getElementById('p-in').value;
             if(u) localStorage.setItem('f_user', u);
+            if(pass) localStorage.setItem('f_pass', pass);
             if(pic) localStorage.setItem('f_pfp', pic);
             location.reload();
         }
@@ -176,6 +185,7 @@
                 reader.readAsText(e.target.files[0]);
                 reader.onload = event => {
                     const obj = JSON.parse(event.target.result);
+                    localStorage.clear();
                     for (let key in obj) localStorage.setItem(key, obj[key]);
                     location.reload();
                 };
