@@ -99,7 +99,8 @@
             </div>
 
             <input type="text" id="u-in" placeholder="Username">
-            <input type="password" id="pass-in" placeholder="Fish ID / Password"> <input type="url" id="p-in" placeholder="PFP GIF/URL Link">
+            <input type="password" id="pass-in" placeholder="Fish ID / Password"> 
+            <input type="url" id="p-in" placeholder="PFP GIF/URL Link">
             
             <button class="s-btn" style="width:100%; background:var(--accent); color:black; margin-top:10px;" onclick="saveAcc()">Save Profile</button>
             
@@ -196,20 +197,21 @@
             if(url) { document.body.style.backgroundImage = `url('${url}')`; localStorage.setItem('f_bg', url); }
         }
 
-        // ✅ NEW ENTER HANDLER: direct links + search combo
+        // ✅ THE TURBO SEARCH FIX (REPLACED ORIGINAL)
         document.getElementById('search').onkeydown = (e) => {
             if (e.key === 'Enter') {
                 let q = e.target.value.trim();
+                if (!q) return;
 
-                // if it looks like a URL
+                // Check if it's a direct URL
                 if (q.includes('.') && !q.includes(' ')) {
                     if (!q.startsWith('http://') && !q.startsWith('https://')) {
                         q = 'https://' + q;
                     }
                     window.location.href = q;
                 } else {
-                    // otherwise, search it
-                    location.href = window.location.pathname + "?q=" + encodeURIComponent(q) + "#gsc.tab=0";
+                    // Search redirect (No more shatting itself!)
+                    window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(q);
                 }
             }
         };
