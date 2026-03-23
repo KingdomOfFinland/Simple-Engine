@@ -15,7 +15,6 @@
             color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; padding-top: 80px; transition: 0.3s; min-height: 100vh;
         }
 
-        /* NEON GLOW DESIGN - Valkeakoski Approved */
         .logo-area img { 
             width: 180px; height: 180px; border-radius: 50%; object-fit: cover; 
             border: 4px solid var(--accent); 
@@ -38,7 +37,6 @@
         }
         .s-btn:hover { background: var(--accent); transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
 
-        /* MODAL & ADMIN BAR */
         .admin-bar { 
             position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; align-items: center; 
             background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 50px; 
@@ -198,9 +196,21 @@
             if(url) { document.body.style.backgroundImage = `url('${url}')`; localStorage.setItem('f_bg', url); }
         }
 
+        // ✅ NEW ENTER HANDLER: direct links + search combo
         document.getElementById('search').onkeydown = (e) => {
-            if(e.key === 'Enter') {
-                location.href = window.location.pathname + "?q=" + encodeURIComponent(e.target.value) + "#gsc.tab=0";
+            if (e.key === 'Enter') {
+                let q = e.target.value.trim();
+
+                // if it looks like a URL
+                if (q.includes('.') && !q.includes(' ')) {
+                    if (!q.startsWith('http://') && !q.startsWith('https://')) {
+                        q = 'https://' + q;
+                    }
+                    window.location.href = q;
+                } else {
+                    // otherwise, search it
+                    location.href = window.location.pathname + "?q=" + encodeURIComponent(q) + "#gsc.tab=0";
+                }
             }
         };
 
