@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISB v0.2.2</title>
+    <title>Fish Engine | FISB v0.2.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f2f2f2; --text: #333; --box-bg: #fff; --accent: #00ff00; }
-        [data-theme="dark"] { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; }
+        :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
+        [data-theme="light"] { --bg: #f2f2f2; --text: #333; --box-bg: #fff; }
         
         body { 
             background-color: var(--bg);
@@ -15,49 +15,57 @@
             color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; padding-top: 80px; transition: 0.3s; min-height: 100vh;
         }
 
-        .logo-area img { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); filter: drop-shadow(0 0 15px var(--accent)); }
-        h1 { font-size: 2.5em; margin: 10px 0 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        /* NEON GLOW DESIGN - Valkeakoski Approved */
+        .logo-area img { 
+            width: 180px; height: 180px; border-radius: 50%; object-fit: cover; 
+            border: 4px solid var(--accent); 
+            box-shadow: 0 0 25px var(--accent), inset 0 0 15px var(--accent); 
+        }
+        h1 { font-size: 2.5em; margin: 15px 0 0; font-weight: 700; text-shadow: 0 0 10px rgba(0,255,0,0.5); }
         
-        .search-container { margin: 30px auto; width: 90%; max-width: 600px; }
+        .search-container { margin: 30px auto; width: 90%; max-width: 650px; }
         .search-box { 
             width: 100%; padding: 15px 25px; border-radius: 50px; border: 2px solid var(--accent); 
-            font-size: 18px; outline: none; background: var(--box-bg); color: var(--text);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            font-size: 18px; outline: none; background: rgba(0,0,0,0.6); color: var(--text);
+            box-shadow: 0 0 15px rgba(0,255,0,0.3); transition: 0.3s;
         }
+        .search-box:focus { box-shadow: 0 0 25px var(--accent); }
 
-        .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
-        .s-btn { padding: 8px 16px; border-radius: 4px; border: none; background: #eee; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; color: #333; }
-        .s-btn:hover { background: var(--accent); color: #000; transform: translateY(-2px); box-shadow: 0 4px 8px var(--accent); }
+        .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 25px; }
+        .s-btn { 
+            padding: 10px 18px; border-radius: 8px; border: none; background: #fff; 
+            cursor: pointer; font-size: 13px; font-weight: bold; color: #000; transition: 0.2s; 
+        }
+        .s-btn:hover { background: var(--accent); transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
 
-        /* MODAL & LANG SCROLL */
+        /* MODAL & ADMIN BAR */
+        .admin-bar { 
+            position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; align-items: center; 
+            background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 50px; 
+            border: 2px solid var(--accent); box-shadow: 0 0 15px var(--accent);
+        }
+        .mini-btn { padding: 6px 14px; font-size: 11px; border-radius: 30px; border: none; cursor: pointer; background: #222; color: #fff; font-weight: bold; }
+        .pfp-small { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
+
+        #acc-modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); }
+        .modal-box { 
+            background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 30px; 
+            width: 360px; border-radius: 20px; border: 2px solid var(--accent); 
+            box-shadow: 0 0 30px var(--accent); text-align: left; 
+        }
+        .modal-box input { width: 93%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #555; background: #111; color: #fff; }
+        
         .lang-scroll {
-            display: flex; overflow-x: auto; gap: 8px; padding: 10px;
-            background: rgba(0,0,0,0.3); border-radius: 10px; margin: 15px 0;
+            display: flex; overflow-x: auto; gap: 10px; padding: 10px 0;
             scrollbar-width: thin; scrollbar-color: var(--accent) transparent;
         }
         .lang-item {
-            white-space: nowrap; cursor: pointer; padding: 6px 12px;
-            background: #444; color: #fff; border-radius: 20px; font-size: 11px;
-            border: 1px solid transparent; transition: 0.2s;
+            white-space: nowrap; cursor: pointer; padding: 8px 15px;
+            background: #444; color: #fff; border-radius: 20px; font-size: 12px; transition: 0.2s;
         }
-        .lang-item.active { border-color: var(--accent); background: var(--accent); color: #000; }
+        .lang-item.active { background: var(--accent); color: #000; font-weight: bold; }
 
-        .google-btn {
-            background: white; color: #444; width: 100%; padding: 10px;
-            border-radius: 5px; border: 1px solid #ddd; font-weight: bold;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            margin-bottom: 15px; cursor: pointer;
-        }
-
-        .admin-bar { position: fixed; bottom: 15px; right: 15px; display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.7); padding: 8px 15px; border-radius: 50px; backdrop-filter: blur(8px); border: 1px solid var(--accent); }
-        .mini-btn { padding: 5px 12px; font-size: 11px; border-radius: 30px; border: none; cursor: pointer; background: #222; color: #fff; }
-        .pfp-small { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
-
-        #acc-modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); }
-        .modal-box { background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 25px; width: 340px; border-radius: 15px; border: 2px solid var(--accent); text-align: left; }
-        .modal-box input { width: 93%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #777; background: #222; color: #fff; }
-        
-        .footer { margin-top: 50px; font-size: 12px; color: #aaa; padding-bottom: 20px; }
+        .footer { margin-top: 60px; font-size: 12px; color: #777; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -86,21 +94,25 @@
 
     <div id="acc-modal">
         <div class="modal-box">
-            <h3 style="margin-top:0; color:var(--accent);">☢️ FISB Control Center</h3>
+            <h3 style="margin-top:0; color:var(--accent); text-align:center;">☢️ FISB CONTROL HUB</h3>
             
-            <div class="google-btn" onclick="alert('Google Auth: Access Denied. Your Celeron is too powerful. Use Fish ID!')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_Reference_Icon.svg" width="18">
-                Sign in with Google
+            <div style="background: white; color: #444; width: 93%; padding: 10px; border-radius: 8px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; cursor: pointer;" onclick="alert('Google Auth: Denied. Use Fish ID for Done Eht status.')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_Reference_Icon.svg" width="18"> Sign in with Google
             </div>
 
             <input type="text" id="u-in" placeholder="Username">
             <input type="url" id="p-in" placeholder="PFP GIF/URL Link">
-            <button class="s-btn" style="width:100%; background:var(--accent); color:black;" onclick="saveAcc()">Save Profile</button>
+            <button class="s-btn" style="width:100%; background:var(--accent); color:black; margin-top:10px;" onclick="saveAcc()">Save Profile</button>
             
-            <p style="margin: 15px 0 5px; font-size: 12px; font-weight: bold;">Select Language Hub:</p>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button class="mini-btn" style="flex:1;" onclick="exportData()">Export JSON</button>
+                <button class="mini-btn" style="flex:1;" onclick="importData()">Import JSON</button>
+            </div>
+
+            <p style="margin: 20px 0 5px; font-size: 12px; font-weight: bold; color:var(--accent);">Language Hub:</p>
             <div class="lang-scroll" id="lang-list"></div>
 
-            <button class="s-btn" style="width:100%; margin-top:10px; background:#555; color:white;" onclick="toggleAcc()">Close</button>
+            <button class="s-btn" style="width:100%; margin-top:20px; background:#555; color:white;" onclick="toggleAcc()">Close</button>
         </div>
     </div>
 
@@ -111,6 +123,7 @@
     <div class="admin-bar">
         <img id="nav-pfp" src="https://i.imgur.com/pnrxkA8.png" class="pfp-small" onclick="toggleAcc()">
         <button class="mini-btn" id="lang-display" onclick="toggleAcc()">🌐 FI</button>
+        <button class="mini-btn" onclick="changeBG()">🖼️ BG</button>
         <button class="mini-btn" id="theme-btn">🌙</button>
     </div>
 
@@ -120,17 +133,11 @@
             'en': { subtitle: 'Search the entire internet', placeholder: 'Search something...', label: 'English 🇬🇧' },
             'sv': { subtitle: 'Sök på hela internet', placeholder: 'Sök något...', label: 'Svenska 🇸🇪' },
             'de': { subtitle: 'Suche im ganzen Internet', placeholder: 'Suche etwas...', label: 'Deutsch 🇩🇪' },
-            'jp': { subtitle: 'インターネット全体を検索', placeholder: '何かを探す...', label: '日本語 🇯🇵' },
-            'ru': { subtitle: 'Поиск во всем интернете', placeholder: 'Найти что-то...', label: 'Русский 🇷🇺' }
+            'jp': { subtitle: 'インターネット全体を検索', placeholder: '何かを探す...', label: '日本語 🇯🇵' }
         };
 
         function openS(url) { window.open(url, '_blank'); }
-
-        function toggleAcc() { 
-            const m = document.getElementById('acc-modal');
-            m.style.display = (m.style.display === 'block') ? 'none' : 'block'; 
-            if(m.style.display === 'block') generateLangs();
-        }
+        function toggleAcc() { const m = document.getElementById('acc-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; if(m.style.display === 'block') generateLangs(); }
 
         function generateLangs() {
             const container = document.getElementById('lang-list');
@@ -140,10 +147,7 @@
                 const div = document.createElement('div');
                 div.className = `lang-item ${current === key ? 'active' : ''}`;
                 div.innerText = langs[key].label;
-                div.onclick = () => {
-                    localStorage.setItem('f_lang', key);
-                    location.reload();
-                };
+                div.onclick = () => { localStorage.setItem('f_lang', key); location.reload(); };
                 container.appendChild(div);
             });
         }
@@ -156,35 +160,55 @@
             location.reload();
         }
 
-        // --- GSC & SEARCH FIX ---
+        function exportData() {
+            const data = JSON.stringify(localStorage);
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'}));
+            a.download = 'fish_profile.json';
+            a.click();
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = e => {
+                const reader = new FileReader();
+                reader.readAsText(e.target.files[0]);
+                reader.onload = event => {
+                    const obj = JSON.parse(event.target.result);
+                    for (let key in obj) localStorage.setItem(key, obj[key]);
+                    location.reload();
+                };
+            };
+            input.click();
+        }
+
+        function changeBG() {
+            let url = prompt("Paste Direct GIF URL:");
+            if(url) { document.body.style.backgroundImage = `url('${url}')`; localStorage.setItem('f_bg', url); }
+        }
+
         document.getElementById('search').onkeydown = (e) => {
             if(e.key === 'Enter') {
-                const query = encodeURIComponent(e.target.value);
-                // Palautettiin GSC-yhteensopivuus (#gsc.tab=0)
-                location.href = window.location.pathname + "?q=" + query + "#gsc.tab=0";
+                location.href = window.location.pathname + "?q=" + encodeURIComponent(e.target.value) + "#gsc.tab=0";
             }
         };
 
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const q = urlParams.get('q');
-            if(q) document.getElementById('search').value = q;
-
+            if(urlParams.get('q')) document.getElementById('search').value = urlParams.get('q');
             const l = localStorage.getItem('f_lang') || 'fi';
             document.getElementById('subtitle').innerText = langs[l].subtitle;
             document.getElementById('search').placeholder = langs[l].placeholder;
             document.getElementById('lang-display').innerText = "🌐 " + l.toUpperCase();
-
             if(localStorage.getItem('f_user')) document.getElementById('user-tag').innerText = localStorage.getItem('f_user');
-            if(localStorage.getItem('f_pfp')) {
-                document.getElementById('main-pfp').src = localStorage.getItem('f_pfp');
-                document.getElementById('nav-pfp').src = localStorage.getItem('f_pfp');
-            }
+            if(localStorage.getItem('f_pfp')) { document.getElementById('main-pfp').src = localStorage.getItem('f_pfp'); document.getElementById('nav-pfp').src = localStorage.getItem('f_pfp'); }
+            if(localStorage.getItem('f_bg')) document.body.style.backgroundImage = `url('${localStorage.getItem('f_bg')}')`;
             if(localStorage.getItem('f_theme')) document.documentElement.setAttribute('data-theme', localStorage.getItem('f_theme'));
         };
 
         document.getElementById('theme-btn').onclick = () => {
-            let m = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            let m = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', m);
             localStorage.setItem('f_theme', m);
         };
