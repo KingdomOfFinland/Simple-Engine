@@ -1,9 +1,9 @@
 const { app, BrowserWindow, session } = require('electron');
 const path = require('path');
 
-// 1. Estetään rautakiihdytys (auttaa vanhan VA-API:n kanssa)
-app.disableHardwareAcceleration();
-app.commandLine.appendSwitch('disable-gpu');
+// Yritetään hiljentää VA-API ja pakottaa GPU päälle jos mahdollista
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('disable-software-rasterizer');
 app.commandLine.appendSwitch('disable-dev-shm-usage');
 app.commandLine.appendSwitch('no-sandbox');
@@ -17,28 +17,17 @@ function createWindow () {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      // --- TÄMÄ ON SE TÄRKEIN LISÄYS ---
-      webviewTag: true, 
-      // --------------------------------
+      webviewTag: true, // TÄRKEÄ!
       webSecurity: false 
     }
   });
 
-  // Poistetaan Header-estot (varmuuden vuoksi, vaikka webview hoitaa useimmat)
+  // Poistetaan estot lennosta
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     let responseHeaders = details.responseHeaders;
     delete responseHeaders['x-frame-options'];
-    delete responseHeaders['X-Frame-Options'];
     delete responseHeaders['content-security-policy'];
-    delete responseHeaders['Content-Security-Policy'];
-
-    callback({
-      cancel: false,
-      responseHeaders: {
-        ...responseHeaders,
-        'Access-Control-Allow-Origin': ['*']
-      }
-    });
+    callback({ cancel: false, responseHeaders: { ...responseHeaders, 'Access-Control-Allow-Origin': ['*'] } });
   });
 
   win.loadFile(path.join(__dirname, 'index.html'));
