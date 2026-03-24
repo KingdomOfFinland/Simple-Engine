@@ -3,188 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Browser v0.4.0 | Ultimate</title>
+    <title>Fish Engine | FISB v0.3.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ff00; --bg: #1a1a1a; --header: #222; --tab-bg: #333; }
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Ubuntu', sans-serif; background: #000; transition: 0.3s; }
-
-        /* --- TABS BAR --- */
-        #tabs-bar { background: #111; display: flex; align-items: flex-end; padding: 5px 10px 0 10px; gap: 5px; height: 35px; border-bottom: 1px solid #444; }
-        .tab { background: var(--tab-bg); color: #888; padding: 5px 15px; border-radius: 8px 8px 0 0; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 8px; min-width: 80px; max-width: 150px; border: 1px solid #444; border-bottom: none; transition: 0.2s; white-space: nowrap; overflow: hidden; }
-        .tab.active { background: var(--header); color: var(--accent); border-top: 2px solid var(--accent); font-weight: bold; }
-        .tab.incognito { background: #1a0033 !important; border-top-color: #a020f0 !important; color: #d8b4fe !important; }
+        :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
+        [data-theme="light"] { --bg: #f2f2f2; --text: #333; --box-bg: #fff; }
         
-        /* --- BROWSER TOP BAR --- */
-        #browser-header { background: var(--header); padding: 8px 15px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--accent); position: relative; }
-        #url-bar { flex-grow: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid #444; background: #111; color: var(--accent); outline: none; font-size: 14px; }
-        .nav-btn { background: #333; color: white; border: 1px solid #444; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; }
-        .nav-btn:hover { background: var(--accent); color: black; }
-        .star-btn { color: #888; cursor: pointer; font-size: 20px; transition: 0.2s; }
-        .star-btn.active { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+        body { 
+            background-color: var(--bg); background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; 
+            padding-top: 40px; transition: 0.3s; min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+        }
 
-        /* --- VIEWS --- */
-        #views-container { width: 100%; height: calc(100% - 88px); background: #1a1a1a; position: relative; }
-        .browser-view { width: 100%; height: 100%; border: none; display: none; }
-        .browser-view.active { display: block; }
-
-        /* --- DROPDOWN MENUS --- */
-        .dropdown { display: none; position: absolute; top: 90px; right: 15px; background: #2a2a2a; border: 2px solid var(--accent); border-radius: 12px; width: 240px; z-index: 10001; padding: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-        .menu-item { padding: 8px; color: white; cursor: pointer; border-bottom: 1px solid #444; display: flex; justify-content: space-between; font-size: 12px; align-items: center; }
-        .menu-item:hover { background: #333; color: var(--accent); }
+        .logo-area img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent); box-shadow: 0 0 25px var(--accent); }
+        h1 { font-size: 2.5em; margin: 10px 0; text-shadow: 0 0 15px var(--accent); }
         
-        /* --- THEME CHIPS --- */
-        .theme-grid { display: flex; gap: 5px; margin-top: 5px; }
-        .color-chip { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid white; }
+        .search-container { margin: 15px auto; width: 90%; max-width: 650px; }
+        .search-box { 
+            width: 100%; padding: 15px 25px; border-radius: 50px; border: 2px solid var(--accent); 
+            font-size: 18px; outline: none; background: rgba(0,0,0,0.7); color: var(--text);
+            box-shadow: 0 0 15px rgba(0,255,0,0.2); transition: 0.3s; box-sizing: border-box;
+        }
 
-        /* --- PANIC OVERLAY --- */
-        #panic-ui { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:99999; color:white; justify-content:center; align-items:center; font-family:serif; }
+        .grid-label { margin-top: 20px; color: var(--accent); font-weight: bold; font-size: 12px; text-transform: uppercase; }
+        .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; max-width: 800px; }
+        .s-btn { padding: 8px 14px; border-radius: 6px; border: none; background: #fff; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
+        .s-btn:hover { background: var(--accent); transform: scale(1.05); box-shadow: 0 0 15px var(--accent); }
+
+        /* --- MODALS --- */
+        #acc-modal, #game-overlay { display: none; position: fixed; z-index: 3000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); }
+        .modal-box { background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 25px; width: 340px; border-radius: 20px; border: 2px solid var(--accent); text-align: left; }
+        .modal-box input { width: 92%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #555; background: #000; color: #fff; }
+
+        /* --- TIC TAC TOE BOARD --- */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; margin: 20px auto; justify-content: center; }
+        .ttt-cell { width: 80px; height: 80px; background: #222; border: 2px solid var(--accent); font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+
+        .admin-bar { position: fixed; bottom: 15px; right: 15px; display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.8); padding: 8px 12px; border-radius: 50px; border: 2px solid var(--accent); }
+        .pfp-small { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
+        .mini-btn { padding: 5px 10px; font-size: 10px; border-radius: 20px; border: none; cursor: pointer; background: #222; color: #fff; }
     </style>
 </head>
-<body onkeydown="checkPanic(event)">
+<body>
 
-    <div id="panic-ui"><h1>404 Not Found</h1></div>
-
-    <div id="tabs-bar">
-        <div id="tabs-container" style="display:flex; gap:5px;"></div>
-        <button class="nav-btn" style="padding:2px 8px;" onclick="createNewTab()" oncontextmenu="event.preventDefault(); createNewTab('fisb.html', true)">+</button>
+    <div class="logo-area">
+        <img id="main-pfp" src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
+        <h1>Fish Engine</h1>
+        <p style="opacity: 0.6; font-size: 12px;">v0.3.1 | Valkeakoski Engineering</p>
     </div>
 
-    <div id="browser-header">
-        <button class="nav-btn" onclick="goBack()">←</button>
-        <button class="nav-btn" onclick="reloadPage()">↻</button>
-        <span class="star-btn" id="star-icon" onclick="toggleBookmark()">★</span>
-        <input type="text" id="url-bar" placeholder="Hae tai syötä osoite..." onkeydown="if(event.key==='Enter') navigate(this.value)">
-        <button class="nav-btn" onclick="toggleMenu()">☰</button>
-    </div>
-
-    <div id="views-container"></div>
-
-    <div id="options-menu" class="dropdown">
-        <div style="font-size: 10px; color: var(--accent);">THEME COLOR</div>
-        <div class="theme-grid">
-            <div class="color-chip" style="background:#00ff00;" onclick="setTheme('#00ff00')"></div>
-            <div class="color-chip" style="background:#ff4444;" onclick="setTheme('#ff4444')"></div>
-            <div class="color-chip" style="background:#00ccff;" onclick="setTheme('#00ccff')"></div>
-            <div class="color-chip" style="background:#ff8800;" onclick="setTheme('#ff8800')"></div>
-        </div>
+    <div class="search-container">
+        <input type="text" id="search" class="search-box" placeholder="Mitä etsitään?..." autofocus>
         
-        <div style="font-size: 10px; color: var(--accent); margin-top:15px;">BOOKMARKS</div>
-        <div id="bookmarks-list" style="max-height:100px; overflow-y:auto; margin-bottom:10px;"></div>
+        <div class="grid-label">Quick Links</div>
+        <div class="social-grid">
+            <button class="s-btn" onclick="openS('https://youtube.com')">YouTube</button>
+            <button class="s-btn" onclick="openS('https://tiktok.com')">TikTok</button>
+            <button class="s-btn" onclick="openS('https://kick.com')">Kick</button>
+            <button class="s-btn" onclick="openS('https://twitch.tv')">Twitch</button>
+            <button class="s-btn" onclick="openS('https://instagram.com')">Instagram</button>
+            <button class="s-btn" onclick="openS('https://discord.com')">Discord</button>
+            <button class="s-btn" onclick="openS('https://github.com/KingdomOfFinland')">GitHub</button>
+            <button class="s-btn" style="background: var(--accent);" onclick="openS('https://simplecellsoftware.com/caustic3.html')">Caustic 3</button>
+        </div>
 
-        <div class="menu-item" onclick="createNewTab('fisb.html', true)">🕵️ New Incognito</div>
-        <div class="menu-item" onclick="alert('Panic: Press ESC twice!')">Panic Info</div>
+        <div class="grid-label">FISB Arcade (4 :D)</div>
+        <div class="social-grid">
+            <button class="s-btn" onclick="openGame('ttt')">❌ Ristinolla</button>
+            <button class="s-btn" onclick="openGame('mines')">💣 Miinaharava</button>
+            <button class="s-btn" onclick="window.open('https://p-m-m.github.io/Pinball/', '_blank')">🎱 Pinball ↗</button>
+            <button class="s-btn" onclick="window.open('https://www.google.com/logos/2010/pacman10-i.html', '_blank')">🕹️ Pac-Man ↗</button>
+        </div>
+    </div>
+
+    <div id="acc-modal">
+        <div class="modal-box">
+            <h2 style="color:var(--accent); text-align:center; margin-top:0;">☢️ FISB CONTROL</h2>
+            <input type="text" id="u-name" placeholder="Käyttäjänimi">
+            <input type="password" id="u-pass" placeholder="Salasana">
+            <input type="url" id="pfp-url" placeholder="PFP URL">
+            <div style="margin-top:10px; display:flex; gap:5px;">
+                <button class="mini-btn" onclick="exportJSON()" style="flex:1;">Export JSON</button>
+                <button class="mini-btn" onclick="importJSON()" style="flex:1;">Import JSON</button>
+            </div>
+            <button class="s-btn" style="width:100%; margin-top:15px; background:var(--accent); color:black;" onclick="saveProfile()">TALLENNA</button>
+            <button class="s-btn" style="width:100%; margin-top:5px; background:#555; color:#fff;" onclick="closeModal('acc-modal')">SULJE</button>
+        </div>
+    </div>
+
+    <div id="game-overlay">
+        <div id="game-content" style="margin-top:50px;"></div>
+        <button class="s-btn" style="background:#ff4444; color:white; margin-top:20px;" onclick="closeModal('game-overlay')">LOPETA PELI</button>
+    </div>
+
+    <div class="admin-bar">
+        <img id="nav-pfp" src="https://i.imgur.com/pnrxkA8.png" class="pfp-small" onclick="openModal('acc-modal')">
+        <button class="mini-btn" onclick="changeBG()">🖼️ BG</button>
+        <button class="mini-btn" id="theme-toggle">🌙</button>
     </div>
 
     <script>
-        let tabs = [];
-        let activeTabId = null;
-        let panicCount = 0;
+        function openS(url) { window.location.href = url; }
+        function handleSearch(q) {
+            if (!q.trim()) return;
+            if (q.includes('.') && !q.includes(' ')) { window.location.href = q.startsWith('http') ? q : 'https://' + q; }
+            else { window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(q); }
+        }
+        document.getElementById('search').onkeydown = (e) => { if(e.key === 'Enter') handleSearch(e.target.value); };
 
-        // --- CORE NAVIGATION & TABS ---
-        function createNewTab(url = "fisb.html", incognito = false) {
-            const id = 't' + Date.now();
-            tabs.push({ id, url, incognito });
-            
-            const btn = document.createElement('div');
-            btn.id = 'btn-' + id;
-            btn.className = `tab ${incognito ? 'incognito' : ''}`;
-            btn.onclick = () => switchTab(id);
-            btn.innerHTML = `<span class="t-title">${incognito ? '🕵️ Private' : 'New Tab'}</span> <span onclick="closeTab(event,'${id}')">×</span>`;
-            document.getElementById('tabs-container').appendChild(btn);
+        function openModal(id) { document.getElementById(id).style.display = 'block'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; document.getElementById('game-content').innerHTML = ''; }
 
-            const ifr = document.createElement('iframe');
-            ifr.id = 'ifr-' + id;
-            ifr.className = 'browser-view';
-            ifr.src = url;
-            document.getElementById('views-container').appendChild(ifr);
-
-            switchTab(id);
+        // --- GAME LOGIC ---
+        let tttBoard = Array(9).fill(null);
+        function openGame(type) {
+            openModal('game-overlay');
+            const cont = document.getElementById('game-content');
+            if(type === 'mines') cont.innerHTML = `<iframe src="https://minesweeper.online/game/1" style="width:90%; height:500px; border:2px solid var(--accent);"></iframe>`;
+            if(type === 'ttt') {
+                tttBoard = Array(9).fill(null);
+                cont.innerHTML = `<h2 style="color:var(--accent)">RISTINOLLA</h2><div class="ttt-grid">${Array(9).fill().map((_,i)=>`<div class="ttt-cell" id="c-${i}" onclick="playTTT(${i})"></div>`).join('')}</div><p id="ttt-stat">Sinun vuorosi (X)</p>`;
+            }
         }
 
-        function switchTab(id) {
-            activeTabId = id;
-            document.querySelectorAll('.tab, .browser-view').forEach(e => e.classList.remove('active'));
-            document.getElementById('btn-' + id).classList.add('active');
-            document.getElementById('ifr-' + id).classList.add('active');
-            
-            const cur = tabs.find(t => t.id === id);
-            document.getElementById('url-bar').value = cur.url === "fisb.html" ? "" : cur.url;
-            checkStarUI(cur.url);
-        }
-
-        function closeTab(e, id) {
-            e.stopPropagation();
-            if (tabs.length === 1) return;
-            tabs = tabs.filter(t => t.id !== id);
-            document.getElementById('btn-' + id).remove();
-            document.getElementById('ifr-' + id).remove();
-            if (activeTabId === id) switchTab(tabs[tabs.length-1].id);
-        }
-
-        function navigate(val) {
-            let url = val.trim();
-            if (!url.includes('.') || url.includes(' ')) url = "https://www.google.com/search?q=" + encodeURIComponent(url);
-            else if (!url.startsWith('http')) url = "https://" + url;
-
-            const cur = tabs.find(t => t.id === activeTabId);
-            cur.url = url;
-            document.getElementById('ifr-' + activeTabId).src = url;
-            document.getElementById('url-bar').value = url;
-            document.querySelector(`#btn-${activeTabId} .t-title`).innerText = url.split('/')[2];
-            checkStarUI(url);
-        }
-
-        // --- PANIC BUTTON (ESC twice) ---
-        function checkPanic(e) {
-            if (e.key === "Escape") {
-                panicCount++;
-                if (panicCount >= 2) {
-                    tabs.filter(t => t.incognito).forEach(t => closeTab({stopPropagation:()=>{}}, t.id));
-                    document.getElementById('panic-ui').style.display = 'flex';
-                    setTimeout(() => { document.getElementById('panic-ui').style.display = 'none'; panicCount=0; }, 3000);
+        function playTTT(i) {
+            if(tttBoard[i]) return;
+            tttBoard[i] = 'X'; document.getElementById(`c-${i}`).innerText = 'X';
+            if(checkWin('X')) { document.getElementById('ttt-stat').innerText = "VOITIT!"; return; }
+            setTimeout(() => {
+                let empty = tttBoard.map((v,idx)=> v===null?idx:null).filter(v=>v!==null);
+                if(empty.length) { 
+                    let move = empty[Math.floor(Math.random()*empty.length)];
+                    tttBoard[move] = 'O'; document.getElementById(`c-${move}`).innerText = 'O';
+                    if(checkWin('O')) document.getElementById('ttt-stat').innerText = "AI VOITTI!";
                 }
-            } else { panicCount = 0; }
+            }, 300);
         }
 
-        // --- BOOKMARKS ---
-        function toggleBookmark() {
-            let bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
-            const url = tabs.find(t => t.id === activeTabId).url;
-            if (bks.includes(url)) bks = bks.filter(i => i !== url);
-            else bks.push(url);
-            localStorage.setItem('f_bks', JSON.stringify(bks));
-            updateBksUI();
-            checkStarUI(url);
+        function checkWin(p) {
+            const w = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            return w.some(s => s.every(i => tttBoard[i] === p));
         }
 
-        function updateBksUI() {
-            const list = document.getElementById('bookmarks-list');
-            const bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
-            list.innerHTML = bks.map(b => `<div class="menu-item" onclick="navigate('${b}')">${b.split('/')[2]} <span>⭐</span></div>`).join('');
+        // --- ACCOUNT LOGIC ---
+        function saveProfile() {
+            localStorage.setItem('f_user', document.getElementById('u-name').value);
+            localStorage.setItem('f_pass', document.getElementById('u-pass').value);
+            localStorage.setItem('f_pfp', document.getElementById('pfp-url').value);
+            location.reload();
         }
-
-        function checkStarUI(url) {
-            const bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
-            document.getElementById('star-icon').className = bks.includes(url) ? 'star-btn active' : 'star-btn';
+        function exportJSON() {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(localStorage)], {type: 'application/json'}));
+            a.download = 'fisb_profile.json'; a.click();
         }
-
-        // --- THEMES ---
-        function setTheme(hex) {
-            document.documentElement.style.setProperty('--accent', hex);
-            localStorage.setItem('f_theme', hex);
+        function importJSON() {
+            const input = document.createElement('input'); input.type = 'file';
+            input.onchange = e => {
+                const reader = new FileReader(); reader.readAsText(e.target.files[0]);
+                reader.onload = ev => { Object.entries(JSON.parse(ev.target.result)).forEach(([k,v])=>localStorage.setItem(k,v)); location.reload(); };
+            }; input.click();
         }
-
-        function toggleMenu() { const m = document.getElementById('options-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
-        function goBack() { document.getElementById('ifr-'+activeTabId).contentWindow.history.back(); }
-        function reloadPage() { document.getElementById('ifr-'+activeTabId).contentWindow.location.reload(); }
+        function changeBG() { const url = prompt("GIF URL:"); if(url) { localStorage.setItem('f_bg', url); document.body.style.backgroundImage = `url('${url}')`; } }
 
         window.onload = () => {
-            const savedTheme = localStorage.getItem('f_theme');
-            if (savedTheme) setTheme(savedTheme);
-            updateBksUI();
-            createNewTab();
+            if(localStorage.getItem('f_user')) { document.getElementById('u-name').value = localStorage.getItem('f_user'); }
+            if(localStorage.getItem('f_bg')) document.body.style.backgroundImage = `url('${localStorage.getItem('f_bg')}')`;
+            if(localStorage.getItem('f_pfp')) { document.getElementById('main-pfp').src = localStorage.getItem('f_pfp'); document.getElementById('nav-pfp').src = localStorage.getItem('f_pfp'); }
         };
+        document.getElementById('theme-toggle').onclick = () => { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); };
     </script>
 </body>
 </html>
