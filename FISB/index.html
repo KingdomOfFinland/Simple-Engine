@@ -3,293 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISB v0.2.7</title>
+    <title>Fish Browser v0.4.0 | Ultimate</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
-        [data-theme="light"] { --bg: #f2f2f2; --text: #333; --box-bg: #fff; }
+        :root { --accent: #00ff00; --bg: #1a1a1a; --header: #222; --tab-bg: #333; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Ubuntu', sans-serif; background: #000; transition: 0.3s; }
+
+        /* --- TABS BAR --- */
+        #tabs-bar { background: #111; display: flex; align-items: flex-end; padding: 5px 10px 0 10px; gap: 5px; height: 35px; border-bottom: 1px solid #444; }
+        .tab { background: var(--tab-bg); color: #888; padding: 5px 15px; border-radius: 8px 8px 0 0; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 8px; min-width: 80px; max-width: 150px; border: 1px solid #444; border-bottom: none; transition: 0.2s; white-space: nowrap; overflow: hidden; }
+        .tab.active { background: var(--header); color: var(--accent); border-top: 2px solid var(--accent); font-weight: bold; }
+        .tab.incognito { background: #1a0033 !important; border-top-color: #a020f0 !important; color: #d8b4fe !important; }
         
-        body { 
-            background-color: var(--bg);
-            background-size: cover; background-position: center; background-attachment: fixed;
-            color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; 
-            padding-top: 100px; 
-            transition: 0.3s; min-height: 100vh;
-        }
+        /* --- BROWSER TOP BAR --- */
+        #browser-header { background: var(--header); padding: 8px 15px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--accent); position: relative; }
+        #url-bar { flex-grow: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid #444; background: #111; color: var(--accent); outline: none; font-size: 14px; }
+        .nav-btn { background: #333; color: white; border: 1px solid #444; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .nav-btn:hover { background: var(--accent); color: black; }
+        .star-btn { color: #888; cursor: pointer; font-size: 20px; transition: 0.2s; }
+        .star-btn.active { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
 
-        /* --- BROWSER UI HEADER --- */
-        .browser-header {
-            position: fixed; top: 0; left: 0; width: 100%;
-            background: #111; border-bottom: 2px solid var(--accent);
-            display: flex; align-items: center; gap: 15px; padding: 10px 20px;
-            z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-        }
-        .nav-controls { display: flex; gap: 8px; }
-        .nav-btn {
-            background: #222; color: var(--accent); border: 1px solid var(--accent);
-            border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
-            font-weight: bold; font-size: 16px; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .nav-btn:hover { background: var(--accent); color: #000; }
+        /* --- VIEWS --- */
+        #views-container { width: 100%; height: calc(100% - 88px); background: #1a1a1a; position: relative; }
+        .browser-view { width: 100%; height: 100%; border: none; display: none; }
+        .browser-view.active { display: block; }
+
+        /* --- DROPDOWN MENUS --- */
+        .dropdown { display: none; position: absolute; top: 90px; right: 15px; background: #2a2a2a; border: 2px solid var(--accent); border-radius: 12px; width: 240px; z-index: 10001; padding: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .menu-item { padding: 8px; color: white; cursor: pointer; border-bottom: 1px solid #444; display: flex; justify-content: space-between; font-size: 12px; align-items: center; }
+        .menu-item:hover { background: #333; color: var(--accent); }
         
-        .home-btn {
-            background: var(--accent); color: #000; border: none;
-            border-radius: 4px; padding: 6px 12px; font-weight: bold;
-            cursor: pointer; transition: 0.3s; font-size: 12px;
-        }
-        .home-btn:hover { box-shadow: 0 0 15px var(--accent); transform: scale(1.05); }
+        /* --- THEME CHIPS --- */
+        .theme-grid { display: flex; gap: 5px; margin-top: 5px; }
+        .color-chip { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid white; }
 
-        .url-bar-container { flex-grow: 1; }
-        .url-input {
-            width: 100%; padding: 8px 15px; border-radius: 20px;
-            background: #000; border: 1px solid #444; color: var(--text);
-            font-family: 'Ubuntu', sans-serif; font-size: 14px; outline: none;
-        }
-        .url-input:focus { border-color: var(--accent); }
-
-        /* --- CONTENT --- */
-        .logo-area img { 
-            width: 180px; height: 180px; border-radius: 50%; object-fit: cover; 
-            border: 4px solid var(--accent); 
-            box-shadow: 0 0 25px var(--accent), inset 0 0 15px var(--accent); 
-        }
-        h1 { font-size: 2.5em; margin: 15px 0 0; font-weight: 700; text-shadow: 0 0 10px rgba(0,255,0,0.5); }
-        
-        .search-container { margin: 30px auto; width: 90%; max-width: 650px; }
-        .search-box { 
-            width: 100%; padding: 15px 25px; border-radius: 50px; border: 2px solid var(--accent); 
-            font-size: 18px; outline: none; background: rgba(0,0,0,0.6); color: var(--text);
-            box-shadow: 0 0 15px rgba(0,255,0,0.3); transition: 0.3s;
-            box-sizing: border-box;
-        }
-        .search-box:focus { box-shadow: 0 0 25px var(--accent); }
-
-        .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 25px; }
-        .s-btn { 
-            padding: 10px 18px; border-radius: 8px; border: none; background: #fff; 
-            cursor: pointer; font-size: 13px; font-weight: bold; color: #000; transition: 0.2s; 
-        }
-        .s-btn:hover { background: var(--accent); transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
-
-        .admin-bar { 
-            position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; align-items: center; 
-            background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 50px; 
-            border: 2px solid var(--accent); box-shadow: 0 0 15px var(--accent); z-index: 100;
-        }
-        .mini-btn { padding: 6px 14px; font-size: 11px; border-radius: 30px; border: none; cursor: pointer; background: #222; color: #fff; font-weight: bold; }
-        .pfp-small { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
-
-        #acc-modal { display: none; position: fixed; z-index: 3000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); }
-        .modal-box { 
-            background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 30px; 
-            width: 360px; border-radius: 20px; border: 2px solid var(--accent); 
-            box-shadow: 0 0 30px var(--accent); text-align: left; 
-        }
-        .modal-box input { width: 93%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #555; background: #111; color: #fff; }
-        
-        .lang-scroll {
-            display: flex; overflow-x: auto; gap: 10px; padding: 10px 0;
-            scrollbar-width: thin; scrollbar-color: var(--accent) transparent;
-        }
-        .lang-item {
-            white-space: nowrap; cursor: pointer; padding: 8px 15px;
-            background: #444; color: #fff; border-radius: 20px; font-size: 12px; transition: 0.2s;
-        }
-        .lang-item.active { background: var(--accent); color: #000; font-weight: bold; }
-
-        .footer { margin-top: 60px; font-size: 12px; color: #777; font-weight: bold; padding-bottom: 20px; }
+        /* --- PANIC OVERLAY --- */
+        #panic-ui { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:99999; color:white; justify-content:center; align-items:center; font-family:serif; }
     </style>
 </head>
-<body>
+<body onkeydown="checkPanic(event)">
 
-    <div class="browser-header">
-        <div class="nav-controls">
-            <button class="nav-btn" onclick="history.back()">&lt;</button>
-            <button class="nav-btn" onclick="history.forward()">&gt;</button>
-            <button class="nav-btn" onclick="location.reload()">↻</button>
-        </div>
-        <button class="home-btn" onclick="window.location.href='index.html'">HOME</button>
-        <div class="url-bar-container">
-            <input type="text" id="url-bar" class="url-input" placeholder="Syötä URL tai etsi...">
-        </div>
-        <div style="color: var(--accent); font-weight: bold; font-size: 11px; white-space: nowrap;">FISB v0.2.7</div>
+    <div id="panic-ui"><h1>404 Not Found</h1></div>
+
+    <div id="tabs-bar">
+        <div id="tabs-container" style="display:flex; gap:5px;"></div>
+        <button class="nav-btn" style="padding:2px 8px;" onclick="createNewTab()" oncontextmenu="event.preventDefault(); createNewTab('fisb.html', true)">+</button>
     </div>
 
-    <div class="logo-area">
-        <img id="main-pfp" src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
-        <h1>Fish Engine</h1>
-        <p id="subtitle">Haku koko internetistä</p>
+    <div id="browser-header">
+        <button class="nav-btn" onclick="goBack()">←</button>
+        <button class="nav-btn" onclick="reloadPage()">↻</button>
+        <span class="star-btn" id="star-icon" onclick="toggleBookmark()">★</span>
+        <input type="text" id="url-bar" placeholder="Hae tai syötä osoite..." onkeydown="if(event.key==='Enter') navigate(this.value)">
+        <button class="nav-btn" onclick="toggleMenu()">☰</button>
     </div>
 
-    <div class="search-container">
-        <input type="text" id="search" class="search-box" placeholder="Etsi jotain..." autofocus>
+    <div id="views-container"></div>
+
+    <div id="options-menu" class="dropdown">
+        <div style="font-size: 10px; color: var(--accent);">THEME COLOR</div>
+        <div class="theme-grid">
+            <div class="color-chip" style="background:#00ff00;" onclick="setTheme('#00ff00')"></div>
+            <div class="color-chip" style="background:#ff4444;" onclick="setTheme('#ff4444')"></div>
+            <div class="color-chip" style="background:#00ccff;" onclick="setTheme('#00ccff')"></div>
+            <div class="color-chip" style="background:#ff8800;" onclick="setTheme('#ff8800')"></div>
+        </div>
         
-        <div class="social-grid">
-            <button class="s-btn" onclick="openS('https://youtube.com/@tuna-fish-inwater')">Channel</button>
-            <button class="s-btn" onclick="openS('https://youtube.com')">YouTube</button>
-            <button class="s-btn" onclick="openS('https://tiktok.com')">TikTok</button>
-            <button class="s-btn" onclick="openS('https://instagram.com')">Instagram</button>
-            <button class="s-btn" onclick="openS('https://twitch.tv')">Twitch</button>
-            <button class="s-btn" onclick="openS('https://discord.com')">Discord</button>
-            <button class="s-btn" onclick="openS('https://github.com/KingdomOfFinland')">GitHub</button>
-            <button class="s-btn" onclick="openS('https://kick.com')">Kick</button>
-            <button class="s-btn" onclick="openS('https://simplecellsoftware.com/caustic3.html')">Caustic 3</button>
-        </div>
-    </div>
+        <div style="font-size: 10px; color: var(--accent); margin-top:15px;">BOOKMARKS</div>
+        <div id="bookmarks-list" style="max-height:100px; overflow-y:auto; margin-bottom:10px;"></div>
 
-    <div id="acc-modal">
-        <div class="modal-box">
-            <h3 style="margin-top:0; color:var(--accent); text-align:center;">☢️ FISB CONTROL HUB</h3>
-            <input type="text" id="u-in" placeholder="Username">
-            <input type="password" id="pass-in" placeholder="Fish ID / Password"> 
-            <input type="url" id="p-in" placeholder="PFP GIF/URL Link">
-            <button class="s-btn" style="width:100%; background:var(--accent); color:black; margin-top:10px;" onclick="saveAcc()">Save Profile</button>
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="mini-btn" style="flex:1;" onclick="exportData()">Export JSON</button>
-                <button class="mini-btn" style="flex:1;" onclick="importData()">Import JSON</button>
-            </div>
-            <p style="margin: 20px 0 5px; font-size: 12px; font-weight: bold; color:var(--accent);">Language Hub:</p>
-            <div class="lang-scroll" id="lang-list"></div>
-            <button class="s-btn" style="width:100%; margin-top:20px; background:#555; color:white;" onclick="toggleAcc()">Close</button>
-        </div>
-    </div>
-
-    <div class="footer">
-        Done Eht | Valkeakoski Engineering | <span id="user-tag" style="color:var(--accent);">Guest</span>
-    </div>
-
-    <div class="admin-bar">
-        <img id="nav-pfp" src="https://i.imgur.com/pnrxkA8.png" class="pfp-small" onclick="toggleAcc()">
-        <button class="mini-btn" id="lang-display" onclick="toggleAcc()">🌐 FI</button>
-        <button class="mini-btn" onclick="changeBG()">🖼️ BG</button>
-        <button class="mini-btn" id="theme-btn">🌙</button>
+        <div class="menu-item" onclick="createNewTab('fisb.html', true)">🕵️ New Incognito</div>
+        <div class="menu-item" onclick="alert('Panic: Press ESC twice!')">Panic Info</div>
     </div>
 
     <script>
-        const langs = {
-            'fi': { subtitle: 'Haku koko internetistä', placeholder: 'Etsi jotain...', label: 'Suomi 🇫🇮' },
-            'en': { subtitle: 'Search the entire internet', placeholder: 'Search something...', label: 'English 🇬🇧' },
-            'sv': { subtitle: 'Sök på hela internet', placeholder: 'Sök något...', label: 'Svenska 🇸🇪' },
-            'de': { subtitle: 'Suche im ganzen Internet', placeholder: 'Suche etwas...', label: 'Deutsch 🇩🇪' },
-            'jp': { subtitle: 'インターネット全体を検索', placeholder: '何かを探す...', label: '日本語 🇯🇵' }
-        };
+        let tabs = [];
+        let activeTabId = null;
+        let panicCount = 0;
 
-        function openS(url) { window.location.href = url; }
-        
-        function toggleAcc() { const m = document.getElementById('acc-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; if(m.style.display === 'block') { generateLangs(); loadInputs(); } }
+        // --- CORE NAVIGATION & TABS ---
+        function createNewTab(url = "fisb.html", incognito = false) {
+            const id = 't' + Date.now();
+            tabs.push({ id, url, incognito });
+            
+            const btn = document.createElement('div');
+            btn.id = 'btn-' + id;
+            btn.className = `tab ${incognito ? 'incognito' : ''}`;
+            btn.onclick = () => switchTab(id);
+            btn.innerHTML = `<span class="t-title">${incognito ? '🕵️ Private' : 'New Tab'}</span> <span onclick="closeTab(event,'${id}')">×</span>`;
+            document.getElementById('tabs-container').appendChild(btn);
 
-        function generateLangs() {
-            const container = document.getElementById('lang-list');
-            const current = localStorage.getItem('f_lang') || 'fi';
-            container.innerHTML = '';
-            Object.keys(langs).forEach(key => {
-                const div = document.createElement('div');
-                div.className = `lang-item ${current === key ? 'active' : ''}`;
-                div.innerText = langs[key].label;
-                div.onclick = () => { localStorage.setItem('f_lang', key); location.reload(); };
-                container.appendChild(div);
-            });
+            const ifr = document.createElement('iframe');
+            ifr.id = 'ifr-' + id;
+            ifr.className = 'browser-view';
+            ifr.src = url;
+            document.getElementById('views-container').appendChild(ifr);
+
+            switchTab(id);
         }
 
-        function loadInputs() {
-            if(localStorage.getItem('f_user')) document.getElementById('u-in').value = localStorage.getItem('f_user');
-            if(localStorage.getItem('f_pass')) document.getElementById('pass-in').value = localStorage.getItem('f_pass');
-            if(localStorage.getItem('f_pfp')) document.getElementById('p-in').value = localStorage.getItem('f_pfp');
+        function switchTab(id) {
+            activeTabId = id;
+            document.querySelectorAll('.tab, .browser-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('btn-' + id).classList.add('active');
+            document.getElementById('ifr-' + id).classList.add('active');
+            
+            const cur = tabs.find(t => t.id === id);
+            document.getElementById('url-bar').value = cur.url === "fisb.html" ? "" : cur.url;
+            checkStarUI(cur.url);
         }
 
-        function saveAcc() {
-            const u = document.getElementById('u-in').value;
-            const pass = document.getElementById('pass-in').value;
-            const pic = document.getElementById('p-in').value;
-            if(u) localStorage.setItem('f_user', u);
-            if(pass) localStorage.setItem('f_pass', pass);
-            if(pic) localStorage.setItem('f_pfp', pic);
-            location.reload();
+        function closeTab(e, id) {
+            e.stopPropagation();
+            if (tabs.length === 1) return;
+            tabs = tabs.filter(t => t.id !== id);
+            document.getElementById('btn-' + id).remove();
+            document.getElementById('ifr-' + id).remove();
+            if (activeTabId === id) switchTab(tabs[tabs.length-1].id);
         }
 
-        function exportData() {
-            const data = JSON.stringify(localStorage);
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'}));
-            a.download = 'fish_profile.json';
-            a.click();
+        function navigate(val) {
+            let url = val.trim();
+            if (!url.includes('.') || url.includes(' ')) url = "https://www.google.com/search?q=" + encodeURIComponent(url);
+            else if (!url.startsWith('http')) url = "https://" + url;
+
+            const cur = tabs.find(t => t.id === activeTabId);
+            cur.url = url;
+            document.getElementById('ifr-' + activeTabId).src = url;
+            document.getElementById('url-bar').value = url;
+            document.querySelector(`#btn-${activeTabId} .t-title`).innerText = url.split('/')[2];
+            checkStarUI(url);
         }
 
-        function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.onchange = e => {
-                const reader = new FileReader();
-                reader.readAsText(e.target.files[0]);
-                reader.onload = event => {
-                    const obj = JSON.parse(event.target.result);
-                    localStorage.clear();
-                    for (let key in obj) localStorage.setItem(key, obj[key]);
-                    location.reload();
-                };
-            };
-            input.click();
+        // --- PANIC BUTTON (ESC twice) ---
+        function checkPanic(e) {
+            if (e.key === "Escape") {
+                panicCount++;
+                if (panicCount >= 2) {
+                    tabs.filter(t => t.incognito).forEach(t => closeTab({stopPropagation:()=>{}}, t.id));
+                    document.getElementById('panic-ui').style.display = 'flex';
+                    setTimeout(() => { document.getElementById('panic-ui').style.display = 'none'; panicCount=0; }, 3000);
+                }
+            } else { panicCount = 0; }
         }
 
-        function changeBG() {
-            let url = prompt("Liitä suora GIF URL:");
-            if(url) { document.body.style.backgroundImage = `url('${url}')`; localStorage.setItem('f_bg', url); }
+        // --- BOOKMARKS ---
+        function toggleBookmark() {
+            let bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
+            const url = tabs.find(t => t.id === activeTabId).url;
+            if (bks.includes(url)) bks = bks.filter(i => i !== url);
+            else bks.push(url);
+            localStorage.setItem('f_bks', JSON.stringify(bks));
+            updateBksUI();
+            checkStarUI(url);
         }
 
-        // --- SINGLE WINDOW LOCK ---
-        document.addEventListener('click', function(e) {
-            const target = e.target.closest('a');
-            if (target && target.href && !target.href.startsWith('javascript:')) {
-                e.preventDefault();
-                document.getElementById('url-bar').value = target.href;
-                window.location.href = target.href;
-            }
-        });
-
-        function handleSearch(query) {
-            let q = query.trim();
-            if (!q) return;
-            if (q.includes('.') && !q.includes(' ')) {
-                if (!q.startsWith('http')) q = 'https://' + q;
-                window.location.href = q;
-            } else {
-                window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(q);
-            }
+        function updateBksUI() {
+            const list = document.getElementById('bookmarks-list');
+            const bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
+            list.innerHTML = bks.map(b => `<div class="menu-item" onclick="navigate('${b}')">${b.split('/')[2]} <span>⭐</span></div>`).join('');
         }
 
-        document.getElementById('search').onkeydown = (e) => {
-            if (e.key === 'Enter') handleSearch(e.target.value);
-        };
+        function checkStarUI(url) {
+            const bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
+            document.getElementById('star-icon').className = bks.includes(url) ? 'star-btn active' : 'star-btn';
+        }
 
-        document.getElementById('url-bar').onkeydown = (e) => {
-            if (e.key === 'Enter') handleSearch(e.target.value);
-        };
+        // --- THEMES ---
+        function setTheme(hex) {
+            document.documentElement.style.setProperty('--accent', hex);
+            localStorage.setItem('f_theme', hex);
+        }
+
+        function toggleMenu() { const m = document.getElementById('options-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+        function goBack() { document.getElementById('ifr-'+activeTabId).contentWindow.history.back(); }
+        function reloadPage() { document.getElementById('ifr-'+activeTabId).contentWindow.location.reload(); }
 
         window.onload = () => {
-            document.getElementById('url-bar').value = window.location.href;
-            const urlParams = new URLSearchParams(window.location.search);
-            if(urlParams.get('q')) document.getElementById('search').value = urlParams.get('q');
-            
-            const l = localStorage.getItem('f_lang') || 'fi';
-            document.getElementById('subtitle').innerText = langs[l].subtitle;
-            document.getElementById('search').placeholder = langs[l].placeholder;
-            document.getElementById('lang-display').innerText = "🌐 " + l.toUpperCase();
-            
-            if(localStorage.getItem('f_user')) document.getElementById('user-tag').innerText = localStorage.getItem('f_user');
-            if(localStorage.getItem('f_pfp')) { 
-                document.getElementById('main-pfp').src = localStorage.getItem('f_pfp'); 
-                document.getElementById('nav-pfp').src = localStorage.getItem('f_pfp'); 
-            }
-            if(localStorage.getItem('f_bg')) document.body.style.backgroundImage = `url('${localStorage.getItem('f_bg')}')`;
-            if(localStorage.getItem('f_theme')) document.documentElement.setAttribute('data-theme', localStorage.getItem('f_theme'));
-        };
-
-        document.getElementById('theme-btn').onclick = () => {
-            let m = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', m);
-            localStorage.setItem('f_theme', m);
+            const savedTheme = localStorage.getItem('f_theme');
+            if (savedTheme) setTheme(savedTheme);
+            updateBksUI();
+            createNewTab();
         };
     </script>
 </body>
