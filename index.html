@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISB v0.2.8</title>
+    <title>Fish Engine | FISB v0.2.9</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
@@ -13,63 +13,50 @@
             background-color: var(--bg);
             background-size: cover; background-position: center; background-attachment: fixed;
             color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; 
-            padding-top: 50px; /* Vähennetty, koska header on poissa */
-            transition: 0.3s; min-height: 100vh;
+            padding-top: 60px; transition: 0.3s; min-height: 100vh;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- CONTENT --- */
+        /* --- LOGO & SEARCH --- */
         .logo-area img { 
             width: 180px; height: 180px; border-radius: 50%; object-fit: cover; 
             border: 4px solid var(--accent); 
-            box-shadow: 0 0 25px var(--accent), inset 0 0 15px var(--accent); 
+            box-shadow: 0 0 25px var(--accent); 
         }
-        h1 { font-size: 2.5em; margin: 15px 0 0; font-weight: 700; text-shadow: 0 0 10px rgba(0,255,0,0.5); }
+        h1 { font-size: 2.5em; margin: 15px 0 0; text-shadow: 0 0 10px rgba(0,255,0,0.5); }
         
         .search-container { margin: 30px auto; width: 90%; max-width: 650px; }
         .search-box { 
             width: 100%; padding: 15px 25px; border-radius: 50px; border: 2px solid var(--accent); 
             font-size: 18px; outline: none; background: rgba(0,0,0,0.6); color: var(--text);
-            box-shadow: 0 0 15px rgba(0,255,0,0.3); transition: 0.3s;
-            box-sizing: border-box;
+            box-shadow: 0 0 15px rgba(0,255,0,0.3); transition: 0.3s; box-sizing: border-box;
         }
         .search-box:focus { box-shadow: 0 0 25px var(--accent); }
 
-        .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 25px; }
+        /* --- GRIDS & BUTTONS --- */
+        .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px; }
         .s-btn { 
             padding: 10px 18px; border-radius: 8px; border: none; background: #fff; 
             cursor: pointer; font-size: 13px; font-weight: bold; color: #000; transition: 0.2s; 
         }
-        .s-btn:hover { background: var(--accent); transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
+        .s-btn:hover { background: var(--accent); transform: scale(1.05); box-shadow: 0 0 15px var(--accent); }
 
-        /* --- ADMIN & MODALS --- */
+        /* --- GAME OVERLAY --- */
+        #game-overlay { 
+            display: none; width: 90%; max-width: 700px; margin-top: 30px; 
+            padding: 20px; border: 2px solid var(--accent); background: rgba(0,0,0,0.9); 
+            border-radius: 15px; box-shadow: 0 0 30px var(--accent);
+        }
+
+        /* --- ADMIN BAR --- */
         .admin-bar { 
-            position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; align-items: center; 
+            position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; 
             background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 50px; 
-            border: 2px solid var(--accent); box-shadow: 0 0 15px var(--accent); z-index: 100;
+            border: 2px solid var(--accent); z-index: 100;
         }
-        .mini-btn { padding: 6px 14px; font-size: 11px; border-radius: 30px; border: none; cursor: pointer; background: #222; color: #fff; font-weight: bold; }
-        .pfp-small { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
+        .mini-btn { padding: 6px 14px; font-size: 11px; border-radius: 30px; border: none; cursor: pointer; background: #222; color: #fff; }
 
-        #acc-modal { display: none; position: fixed; z-index: 3000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); }
-        .modal-box { 
-            background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 30px; 
-            width: 360px; border-radius: 20px; border: 2px solid var(--accent); 
-            box-shadow: 0 0 30px var(--accent); text-align: left; 
-        }
-        .modal-box input { width: 93%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #555; background: #111; color: #fff; }
-        
-        .lang-scroll {
-            display: flex; overflow-x: auto; gap: 10px; padding: 10px 0;
-            scrollbar-width: thin; scrollbar-color: var(--accent) transparent;
-        }
-        .lang-item {
-            white-space: nowrap; cursor: pointer; padding: 8px 15px;
-            background: #444; color: #fff; border-radius: 20px; font-size: 12px; transition: 0.2s;
-        }
-        .lang-item.active { background: var(--accent); color: #000; font-weight: bold; }
-
-        .footer { margin-top: auto; padding: 40px 0 20px; font-size: 12px; color: #777; font-weight: bold; }
+        .footer { margin-top: auto; padding: 40px 0 20px; font-size: 12px; color: #777; }
     </style>
 </head>
 <body>
@@ -84,121 +71,35 @@
         <input type="text" id="search" class="search-box" placeholder="Etsi jotain..." autofocus>
         
         <div class="social-grid">
-            <button class="s-btn" onclick="openS('https://youtube.com/@tuna-fish-inwater')">Channel</button>
-            <button class="s-btn" onclick="openS('https://youtube.com')">YouTube</button>
-            <button class="s-btn" onclick="openS('https://tiktok.com')">TikTok</button>
-            <button class="s-btn" onclick="openS('https://instagram.com')">Instagram</button>
-            <button class="s-btn" onclick="openS('https://twitch.tv')">Twitch</button>
-            <button class="s-btn" onclick="openS('https://discord.com')">Discord</button>
-            <button class="s-btn" onclick="openS('https://github.com/KingdomOfFinland')">GitHub</button>
-            <button class="s-btn" onclick="openS('https://kick.com')">Kick</button>
-            <button class="s-btn" onclick="openS('https://simplecellsoftware.com/caustic3.html')">Caustic 3</button>
+            <button class="s-btn" onclick="location.href='https://youtube.com'">YouTube</button>
+            <button class="s-btn" onclick="location.href='https://discord.com'">Discord</button>
+            <button class="s-btn" onclick="location.href='https://github.com/KingdomOfFinland'">GitHub</button>
         </div>
-    </div>
 
-    <div id="acc-modal">
-        <div class="modal-box">
-            <h3 style="margin-top:0; color:var(--accent); text-align:center;">☢️ FISB CONTROL HUB</h3>
-            <input type="text" id="u-in" placeholder="Username">
-            <input type="password" id="pass-in" placeholder="Fish ID / Password"> 
-            <input type="url" id="p-in" placeholder="PFP GIF/URL Link">
-            <button class="s-btn" style="width:100%; background:var(--accent); color:black; margin-top:10px;" onclick="saveAcc()">Save Profile</button>
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="mini-btn" style="flex:1;" onclick="exportData()">Export JSON</button>
-                <button class="mini-btn" style="flex:1;" onclick="importData()">Import JSON</button>
-            </div>
-            <p style="margin: 20px 0 5px; font-size: 12px; font-weight: bold; color:var(--accent);">Language Hub:</p>
-            <div class="lang-scroll" id="lang-list"></div>
-            <button class="s-btn" style="width:100%; margin-top:20px; background:#555; color:white;" onclick="toggleAcc()">Close</button>
+        <p style="margin-top: 30px; color: var(--accent); font-weight: bold;">FISB ARCADE:</p>
+        <div class="social-grid">
+            <button class="s-btn" onclick="openGame('minesweeper')">💣 Minesweeper</button>
+            <button class="s-btn" onclick="openGame('tictactoe')">❌ Tic-Tac-Toe</button>
+            <button class="s-btn" onclick="location.href='https://p-m-m.github.io/Pinball/'">🎱 Pinball</button>
+        </div>
+
+        <div id="game-overlay">
+            <div id="game-content"></div>
+            <button class="s-btn" onclick="closeGame()" style="background: #ff4444; margin-top: 15px;">Close Game</button>
         </div>
     </div>
 
     <div class="footer">
-        Done Eht | Valkeakoski Engineering | <span id="user-tag" style="color:var(--accent);">Guest</span> | v0.2.8
+        Done Eht | Valkeakoski Engineering | <span id="user-tag" style="color:var(--accent);">Guest</span>
     </div>
 
     <div class="admin-bar">
-        <img id="nav-pfp" src="https://i.imgur.com/pnrxkA8.png" class="pfp-small" onclick="toggleAcc()">
-        <button class="mini-btn" id="lang-display" onclick="toggleAcc()">🌐 FI</button>
         <button class="mini-btn" onclick="changeBG()">🖼️ BG</button>
         <button class="mini-btn" id="theme-btn">🌙</button>
     </div>
 
     <script>
-        const langs = {
-            'fi': { subtitle: 'Haku koko internetistä', placeholder: 'Etsi jotain...', label: 'Suomi 🇫🇮' },
-            'en': { subtitle: 'Search the entire internet', placeholder: 'Search something...', label: 'English 🇬🇧' },
-            'sv': { subtitle: 'Sök på hela internet', placeholder: 'Sök något...', label: 'Svenska 🇸🇪' },
-            'de': { subtitle: 'Suche im ganzen Internet', placeholder: 'Suche etwas...', label: 'Deutsch 🇩🇪' },
-            'jp': { subtitle: 'インターネット全体を検索', placeholder: '何かを探す...', label: '日本語 🇯🇵' }
-        };
-
-        function openS(url) { window.location.href = url; }
-        
-        function toggleAcc() { 
-            const m = document.getElementById('acc-modal'); 
-            m.style.display = (m.style.display === 'block') ? 'none' : 'block'; 
-            if(m.style.display === 'block') { generateLangs(); loadInputs(); } 
-        }
-
-        function generateLangs() {
-            const container = document.getElementById('lang-list');
-            const current = localStorage.getItem('f_lang') || 'fi';
-            container.innerHTML = '';
-            Object.keys(langs).forEach(key => {
-                const div = document.createElement('div');
-                div.className = `lang-item ${current === key ? 'active' : ''}`;
-                div.innerText = langs[key].label;
-                div.onclick = () => { localStorage.setItem('f_lang', key); location.reload(); };
-                container.appendChild(div);
-            });
-        }
-
-        function loadInputs() {
-            if(localStorage.getItem('f_user')) document.getElementById('u-in').value = localStorage.getItem('f_user');
-            if(localStorage.getItem('f_pass')) document.getElementById('pass-in').value = localStorage.getItem('f_pass');
-            if(localStorage.getItem('f_pfp')) document.getElementById('p-in').value = localStorage.getItem('f_pfp');
-        }
-
-        function saveAcc() {
-            const u = document.getElementById('u-in').value;
-            const pass = document.getElementById('pass-in').value;
-            const pic = document.getElementById('p-in').value;
-            if(u) localStorage.setItem('f_user', u);
-            if(pass) localStorage.setItem('f_pass', pass);
-            if(pic) localStorage.setItem('f_pfp', pic);
-            location.reload();
-        }
-
-        function exportData() {
-            const data = JSON.stringify(localStorage);
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'}));
-            a.download = 'fish_profile.json';
-            a.click();
-        }
-
-        function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.onchange = e => {
-                const reader = new FileReader();
-                reader.readAsText(e.target.files[0]);
-                reader.onload = event => {
-                    const obj = JSON.parse(event.target.result);
-                    localStorage.clear();
-                    for (let key in obj) localStorage.setItem(key, obj[key]);
-                    location.reload();
-                };
-            };
-            input.click();
-        }
-
-        function changeBG() {
-            let url = prompt("Liitä suora GIF URL:");
-            if(url) { document.body.style.backgroundImage = `url('${url}')`; localStorage.setItem('f_bg', url); }
-        }
-
+        // --- SEARCH LOGIC ---
         function handleSearch(query) {
             let q = query.trim();
             if (!q) return;
@@ -214,25 +115,32 @@
             if (e.key === 'Enter') handleSearch(e.target.value);
         };
 
-        window.onload = () => {
-            const l = localStorage.getItem('f_lang') || 'fi';
-            document.getElementById('subtitle').innerText = langs[l].subtitle;
-            document.getElementById('search').placeholder = langs[l].placeholder;
-            document.getElementById('lang-display').innerText = "🌐 " + l.toUpperCase();
+        // --- GAME LOGIC ---
+        function openGame(game) {
+            const overlay = document.getElementById('game-overlay');
+            const content = document.getElementById('game-content');
+            overlay.style.display = 'block';
             
-            if(localStorage.getItem('f_user')) document.getElementById('user-tag').innerText = localStorage.getItem('f_user');
-            if(localStorage.getItem('f_pfp')) { 
-                document.getElementById('main-pfp').src = localStorage.getItem('f_pfp'); 
-                document.getElementById('nav-pfp').src = localStorage.getItem('f_pfp'); 
+            if (game === 'tictactoe') {
+                content.innerHTML = `<iframe src="https://playtictactoe.org/" style="width:100%; height:400px; border:none;"></iframe>`;
+            } else if (game === 'minesweeper') {
+                content.innerHTML = `<iframe src="https://minesweeper.online/game/1" style="width:100%; height:500px; border:none;"></iframe>`;
             }
-            if(localStorage.getItem('f_bg')) document.body.style.backgroundImage = `url('${localStorage.getItem('f_bg')}')`;
-            if(localStorage.getItem('f_theme')) document.documentElement.setAttribute('data-theme', localStorage.getItem('f_theme'));
-        };
+            overlay.scrollIntoView({ behavior: 'smooth' });
+        }
 
-        document.getElementById('theme-btn').onclick = () => {
-            let m = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', m);
-            localStorage.setItem('f_theme', m);
+        function closeGame() {
+            document.getElementById('game-overlay').style.display = 'none';
+            document.getElementById('game-content').innerHTML = '';
+        }
+
+        function changeBG() {
+            let url = prompt("Liitä kuva/GIF URL:");
+            if(url) { document.body.style.backgroundImage = `url('${url}')`; localStorage.setItem('f_bg', url); }
+        }
+
+        window.onload = () => {
+            if(localStorage.getItem('f_bg')) document.body.style.backgroundImage = `url('${localStorage.getItem('f_bg')}')`;
         };
     </script>
 </body>
