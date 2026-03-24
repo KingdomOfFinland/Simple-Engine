@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Browser v0.4.0 | Ultimate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #00ff00; --bg: #1a1a1a; --header: #222; --tab-bg: #333; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Ubuntu', sans-serif; background: #000; transition: 0.3s; }
+
+        /* --- TABS BAR --- */
+        #tabs-bar { background: #111; display: flex; align-items: flex-end; padding: 5px 10px 0 10px; gap: 5px; height: 35px; border-bottom: 1px solid #444; }
+        .tab { background: var(--tab-bg); color: #888; padding: 5px 15px; border-radius: 8px 8px 0 0; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 8px; min-width: 80px; max-width: 150px; border: 1px solid #444; border-bottom: none; transition: 0.2s; white-space: nowrap; overflow: hidden; }
+        .tab.active { background: var(--header); color: var(--accent); border-top: 2px solid var(--accent); font-weight: bold; }
+        .tab.incognito { background: #1a0033 !important; border-top-color: #a020f0 !important; color: #d8b4fe !important; }
+        
+        /* --- BROWSER TOP BAR --- */
+        #browser-header { background: var(--header); padding: 8px 15px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--accent); position: relative; }
+        #url-bar { flex-grow: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid #444; background: #111; color: var(--accent); outline: none; font-size: 14px; }
+        .nav-btn { background: #333; color: white; border: 1px solid #444; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .nav-btn:hover { background: var(--accent); color: black; }
+        .star-btn { color: #888; cursor: pointer; font-size: 20px; transition: 0.2s; }
+        .star-btn.active { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+
+        /* --- VIEWS --- */
+        #views-container { width: 100%; height: calc(100% - 88px); background: #1a1a1a; position: relative; }
+        .browser-view { width: 100%; height: 100%; border: none; display: none; }
+        .browser-view.active { display: block; }
+
+        /* --- DROPDOWN MENUS --- */
+        .dropdown { display: none; position: absolute; top: 90px; right: 15px; background: #2a2a2a; border: 2px solid var(--accent); border-radius: 12px; width: 240px; z-index: 10001; padding: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .menu-item { padding: 8px; color: white; cursor: pointer; border-bottom: 1px solid #444; display: flex; justify-content: space-between; font-size: 12px; align-items: center; }
+        .menu-item:hover { background: #333; color: var(--accent); }
+        
+        /* --- THEME CHIPS --- */
+        .theme-grid { display: flex; gap: 5px; margin-top: 5px; }
+        .color-chip { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid white; }
+
+        /* --- PANIC OVERLAY --- */
+        #panic-ui { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:99999; color:white; justify-content:center; align-items:center; font-family:serif; }
+    </style>
+</head>
+<body onkeydown="checkPanic(event)">
+
+    <div id="panic-ui"><h1>404 Not Found</h1></div>
+
+    <div id="tabs-bar">
+        <div id="tabs-container" style="display:flex; gap:5px;"></div>
+        <button class="nav-btn" style="padding:2px 8px;" onclick="createNewTab()" oncontextmenu="event.preventDefault(); createNewTab('fisb.html', true)">+</button>
+    </div>
+
+    <div id="browser-header">
+        <button class="nav-btn" onclick="goBack()">←</button>
+        <button class="nav-btn" onclick="reloadPage()">↻</button>
+        <span class="star-btn" id="star-icon" onclick="toggleBookmark()">★</span>
+        <input type="text" id="url-bar" placeholder="Hae tai syötä osoite..." onkeydown="if(event.key==='Enter') navigate(this.value)">
+        <button class="nav-btn" onclick="toggleMenu()">☰</button>
+    </div>
+
+    <div id="views-container"></div>
+
+    <div id="options-menu" class="dropdown">
+        <div style="font-size: 10px; color: var(--accent);">THEME COLOR</div>
+        <div class="theme-grid">
+            <div class="color-chip" style="background:#00ff00;" onclick="setTheme('#00ff00')"></div>
+            <div class="color-chip" style="background:#ff4444;" onclick="setTheme('#ff4444')"></div>
+            <div class="color-chip" style="background:#00ccff;" onclick="setTheme('#00ccff')"></div>
+            <div class="color-chip" style="background:#ff8800;" onclick="setTheme('#ff8800')"></div>
+        </div>
+        
+        <div style="font-size: 10px; color: var(--accent); margin-top:15px;">BOOKMARKS</div>
+        <div id="bookmarks-list" style="max-height:100px; overflow-y:auto; margin-bottom:10px;"></div>
+
+        <div class="menu-item" onclick="createNewTab('fisb.html', true)">🕵️ New Incognito</div>
+        <div class="menu-item" onclick="alert('Panic: Press ESC twice!')">Panic Info</div>
+    </div>
+
+    <script>
+        let tabs = [];
+        let activeTabId = null;
+        let panicCount = 0;
+
+        // --- CORE NAVIGATION & TABS ---
+        function createNewTab(url = "fisb.html", incognito = false) {
+            const id = 't' + Date.now();
+            tabs.push({ id, url, incognito });
+            
+            const btn = document.createElement('div');
+            btn.id = 'btn-' + id;
+            btn.className = `tab ${incognito ? 'incognito' : ''}`;
+            btn.onclick = () => switchTab(id);
+            btn.innerHTML = `<span class="t-title">${incognito ? '🕵️ Private' : 'New Tab'}</span> <span onclick="closeTab(event,'${id}')">×</span>`;
+            document.getElementById('tabs-container').appendChild(btn);
+
+            const ifr = document.createElement('iframe');
+            ifr.id = 'ifr-' + id;
+            ifr.className = 'browser-view';
+            ifr.src = url;
+            document.getElementById('views-container').appendChild(ifr);
+
+            switchTab(id);
+        }
+
+        function switchTab(id) {
+            activeTabId = id;
+            document.querySelectorAll('.tab, .browser-view').forEach(e => e.classList.remove('active'));
+            document.getElementById('btn-' + id).classList.add('active');
+            document.getElementById('ifr-' + id).classList.add('active');
+            
+            const cur = tabs.find(t => t.id === id);
+            document.getElementById('url-bar').value = cur.url === "fisb.html" ? "" : cur.url;
+            checkStarUI(cur.url);
+        }
+
+        function closeTab(e, id) {
+            e.stopPropagation();
+            if (tabs.length === 1) return;
+            tabs = tabs.filter(t => t.id !== id);
+            document.getElementById('btn-' + id).remove();
+            document.getElementById('ifr-' + id).remove();
+            if (activeTabId === id) switchTab(tabs[tabs.length-1].id);
+        }
+
+        function navigate(val) {
+            let url = val.trim();
+            if (!url.includes('.') || url.includes(' ')) url = "https://www.google.com/search?q=" + encodeURIComponent(url);
+            else if (!url.startsWith('http')) url = "https://" + url;
+
+            const cur = tabs.find(t => t.id === activeTabId);
+            cur.url = url;
+            document.getElementById('ifr-' + activeTabId).src = url;
+            document.getElementById('url-bar').value = url;
+            document.querySelector(`#btn-${activeTabId} .t-title`).innerText = url.split('/')[2];
+            checkStarUI(url);
+        }
+
+        // --- PANIC BUTTON (ESC twice) ---
+        function checkPanic(e) {
+            if (e.key === "Escape") {
+                panicCount++;
+                if (panicCount >= 2) {
+                    tabs.filter(t => t.incognito).forEach(t => closeTab({stopPropagation:()=>{}}, t.id));
+                    document.getElementById('panic-ui').style.display = 'flex';
+                    setTimeout(() => { document.getElementById('panic-ui').style.display = 'none'; panicCount=0; }, 3000);
+                }
+            } else { panicCount = 0; }
+        }
+
+        // --- BOOKMARKS ---
+        function toggleBookmark() {
+            let bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
+            const url = tabs.find(t => t.id === activeTabId).url;
+            if (bks.includes(url)) bks = bks.filter(i => i !== url);
+            else bks.push(url);
+            localStorage.setItem('f_bks', JSON.stringify(bks));
+            updateBksUI();
+            checkStarUI(url);
+        }
+
+        function updateBksUI() {
+            const list = document.getElementById('bookmarks-list');
+            const bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
+            list.innerHTML = bks.map(b => `<div class="menu-item" onclick="navigate('${b}')">${b.split('/')[2]} <span>⭐</span></div>`).join('');
+        }
+
+        function checkStarUI(url) {
+            const bks = JSON.parse(localStorage.getItem('f_bks') || '[]');
+            document.getElementById('star-icon').className = bks.includes(url) ? 'star-btn active' : 'star-btn';
+        }
+
+        // --- THEMES ---
+        function setTheme(hex) {
+            document.documentElement.style.setProperty('--accent', hex);
+            localStorage.setItem('f_theme', hex);
+        }
+
+        function toggleMenu() { const m = document.getElementById('options-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+        function goBack() { document.getElementById('ifr-'+activeTabId).contentWindow.history.back(); }
+        function reloadPage() { document.getElementById('ifr-'+activeTabId).contentWindow.location.reload(); }
+
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('f_theme');
+            if (savedTheme) setTheme(savedTheme);
+            updateBksUI();
+            createNewTab();
+        };
+    </script>
+</body>
+</html>
