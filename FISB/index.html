@@ -93,7 +93,7 @@
             btn.innerHTML = `<span class="t-title">${incognito ? '🕵️ Private' : 'New Tab'}</span> <span onclick="closeTab(event,'${id}')">×</span>`;
             document.getElementById('tabs-container').appendChild(btn);
 
-            const ifr = document.createElement('iframe');
+            const ifr = document.createElement('webview');
             ifr.id = 'ifr-' + id;
             ifr.className = 'browser-view';
             ifr.src = url;
