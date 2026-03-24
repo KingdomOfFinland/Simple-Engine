@@ -2,162 +2,149 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <title>Fish Browser v0.4.0.50 | Ultimate</title>
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #000; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        #browser-ui { display: flex; flex-direction: column; height: 100%; }
-        
-        /* Palkit */
-        #tabs-bar { display: flex; background: #111; padding: 5px 5px 0; gap: 5px; border-bottom: 2px solid #ff4444; align-items: flex-end; }
-        .tab { background: #222; color: #fff; padding: 8px 15px; border-radius: 5px 5px 0 0; cursor: pointer; min-width: 150px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; border: 1px solid #333; border-bottom: none; }
-        .tab.active { background: #ff4444; font-weight: bold; }
-        .close-tab { margin-left: 10px; color: #ff9999; cursor: pointer; }
-        .add-tab { background: #333; color: white; border: none; padding: 5px 12px; cursor: pointer; border-radius: 5px; margin-bottom: 5px; }
-
+    <title>Fish Browser v0.4.0 | Ultimate</title>
+    <style id="theme-style">
+        :root { --main-bg: #000; --ui-bg: #111; --accent: #ff4444; --text: #00ff00; }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--main-bg); font-family: sans-serif; overflow: hidden; }
+        #browser-ui { display: flex; flex-direction: column; height: 100%; position: relative; z-index: 2; }
+        #tabs-bar { display: flex; background: var(--ui-bg); padding: 5px; gap: 5px; border-bottom: 2px solid var(--accent); }
+        .tab { background: #222; color: #fff; padding: 8px 15px; border-radius: 5px 5px 0 0; cursor: pointer; min-width: 120px; font-size: 11px; border: 1px solid #333; display: flex; justify-content: space-between; }
+        .tab.active { background: var(--accent); font-weight: bold; }
         #nav-bar { display: flex; background: #1a1a1a; padding: 10px; gap: 10px; align-items: center; }
-        input#url-input { flex-grow: 1; background: #000; border: 1px solid #444; color: #00ff00; padding: 8px 15px; border-radius: 20px; outline: none; font-family: monospace; }
-        .nav-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
-
-        /* HAMPURILAINEN */
-        #menu-btn { font-size: 24px; color: white; cursor: pointer; padding: 0 10px; user-select: none; }
-        #side-menu { 
-            position: fixed; top: 0; right: -250px; width: 250px; height: 100%; 
-            background: #111; color: white; z-index: 1000; transition: 0.3s; 
-            border-left: 2px solid #ff4444; box-shadow: -5px 0 15px rgba(0,0,0,0.5);
-            padding: 20px; box-sizing: border-box;
-        }
+        input#url-input { flex-grow: 1; background: #000; border: 1px solid #444; color: var(--text); padding: 8px 15px; border-radius: 20px; outline: none; }
+        #side-menu { position: fixed; top: 0; right: -280px; width: 280px; height: 100%; background: #111; color: white; z-index: 1000; transition: 0.3s; border-left: 2px solid var(--accent); padding: 20px; overflow-y: auto; }
         #side-menu.open { right: 0; }
-        .menu-item { 
-            padding: 12px; border-bottom: 1px solid #333; cursor: pointer; 
-            transition: 0.2s; font-size: 14px; 
-        }
-        .menu-item:hover { background: #ff4444; padding-left: 20px; }
-        #overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); display: none; z-index: 999; 
-        }
-
-        #content-area { flex-grow: 1; position: relative; background: #222; }
-        webview { width: 100%; height: 100%; display: none; background: white; }
+        .menu-item { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; font-size: 13px; }
+        .menu-item:hover { background: var(--accent); }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 999; }
+        #content-area { flex-grow: 1; position: relative; background: #fff; }
+        webview { width: 100%; height: 100%; display: none; }
         webview.active { display: flex; }
+
+        /* EASTER EGG CSS */
+        .falling-toshiba {
+            position: fixed; top: -100px; z-index: 9999;
+            width: 80px; pointer-events: none;
+            animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
     </style>
 </head>
 <body>
 
 <div id="overlay" onclick="toggleMenu()"></div>
-
 <div id="side-menu">
-    <h3 style="color: #ff4444; border-bottom: 2px solid #ff4444; padding-bottom: 10px;">FISB OPTIONS</h3>
-    <div class="menu-item" onclick="createNewTab('https://google.com')">New Google Tab</div>
-    <div class="menu-item" onclick="getCurrentWebview()?.reload()">Hard Reload</div>
-    <div class="menu-item" onclick="clearBrowsingData()">Clear Cache</div>
+    <h3 style="color: var(--accent);">FISB SETTINGS</h3>
+    <p><b>Themes:</b></p>
+    <button onclick="setTheme('neon')">Neon Red</button>
+    <button onclick="setTheme('matrix')">Matrix Green</button>
+    <button onclick="setTheme('toshiba')">Classic Grey</button>
+    
+    <p><b>Browser History:</b></p>
+    <div id="history-list" style="font-size: 10px; color: #aaa; max-height: 200px; overflow-y: auto;"></div>
+    
     <div class="menu-item" onclick="toggleDevTools()">Inspect Element</div>
     <div class="menu-item" onclick="createNewTab('fisb.html')">Fish Engine Home</div>
-    <div class="menu-item" onclick="alert('FISB Browser v0.4.0\nCreated by KingdomOfFinland\nStatus: 69 Contributions')">About FISB</div>
-    <div style="position: absolute; bottom: 20px; font-size: 10px; color: #666;">Toshiba Legacy Edition</div>
 </div>
 
 <div id="browser-ui">
-    <div id="tabs-bar">
-        <div id="tabs-container" style="display: flex; gap: 5px;"></div>
-        <button class="add-tab" onclick="createNewTab()">+</button>
-    </div>
-
+    <div id="tabs-bar"><div id="tabs-container" style="display: flex; gap: 5px;"></div><button onclick="createNewTab()" style="background:#333;color:white;border:none;cursor:pointer;">+</button></div>
     <div id="nav-bar">
-        <button class="nav-btn" onclick="getCurrentWebview()?.goBack()">←</button>
-        <button class="nav-btn" onclick="getCurrentWebview()?.reload()">↻</button>
-        <input type="text" id="url-input" placeholder="Hae tai syötä osoite..." onkeypress="handleUrl(event)">
-        <div id="menu-btn" onclick="toggleMenu()">☰</div>
+        <button onclick="getCurrentWebview()?.goBack()" style="background:none; border:none; color:white; cursor:pointer;">←</button>
+        <input type="text" id="url-input" placeholder="Hae..." onkeypress="handleUrl(event)">
+        <div onclick="toggleMenu()" style="cursor:pointer; font-size: 20px; color:white;">☰</div>
     </div>
-
     <div id="content-area"></div>
 </div>
 
 <script>
     const path = require('path');
     let tabCount = 0;
+    let history = [];
     const contentArea = document.getElementById('content-area');
     const tabsContainer = document.getElementById('tabs-container');
     const urlInput = document.getElementById('url-input');
 
     function toggleMenu() {
         const menu = document.getElementById('side-menu');
-        const overlay = document.getElementById('overlay');
-        const isOpen = menu.classList.contains('open');
+        document.getElementById('overlay').style.display = menu.classList.contains('open') ? 'none' : 'block';
         menu.classList.toggle('open');
-        overlay.style.display = isOpen ? 'none' : 'block';
+        updateHistoryUI();
+    }
+
+    function setTheme(t) {
+        const r = document.querySelector(':root');
+        if(t === 'neon') { r.style.setProperty('--accent', '#ff4444'); r.style.setProperty('--text', '#00ff00'); }
+        if(t === 'matrix') { r.style.setProperty('--accent', '#00ff00'); r.style.setProperty('--text', '#00ff00'); }
+        if(t === 'toshiba') { r.style.setProperty('--accent', '#555'); r.style.setProperty('--text', '#fff'); }
+    }
+
+    function updateHistoryUI() {
+        document.getElementById('history-list').innerHTML = history.map(h => `<div>${h}</div>`).reverse().join('');
     }
 
     function createNewTab(url = "fisb.html") {
         tabCount++;
         const id = 'tab-' + tabCount;
-
         const tab = document.createElement('div');
-        tab.className = 'tab';
-        tab.id = 'btn-' + id;
-        tab.innerHTML = `Välilehti ${tabCount} <span class="close-tab" onclick="closeTab('${id}', event)">×</span>`;
+        tab.className = 'tab'; tab.id = 'btn-' + id;
+        tab.innerHTML = `Tab ${tabCount} <span onclick="event.stopPropagation(); closeTab('${id}')">×</span>`;
         tab.onclick = () => switchTab(id);
         tabsContainer.appendChild(tab);
 
         const wv = document.createElement('webview');
         wv.id = id;
         wv.setAttribute('useragent', "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
-        wv.setAttribute('allowpopups', '');
-        wv.setAttribute('nodeintegration', '');
-        wv.setAttribute('webpreferences', 'contextIsolation=no, webSecurity=no');
-
-        if (url === "fisb.html") {
-            wv.src = `file://${path.join(__dirname, 'fisb.html')}`;
-        } else {
-            wv.src = url.startsWith('http') ? url : 'https://' + url;
-        }
+        wv.setAttribute('webpreferences', 'contextIsolation=no, nodeIntegration=yes');
+        
+        wv.src = url === "fisb.html" ? `file://${path.join(__dirname, 'fisb.html')}` : (url.startsWith('http') ? url : 'https://' + url);
 
         wv.addEventListener('did-navigate', (e) => {
-            if (wv.classList.contains('active')) urlInput.value = e.url.includes('fisb.html') ? '' : e.url;
+            if (!e.url.includes('fisb.html')) {
+                history.push(e.url);
+                if (wv.classList.contains('active')) urlInput.value = e.url;
+            }
         });
 
         contentArea.appendChild(wv);
         switchTab(id);
-        if (document.getElementById('side-menu').classList.contains('open')) toggleMenu();
-    }
-
-    function switchTab(id) {
-        document.querySelectorAll('webview').forEach(w => w.classList.remove('active'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        const activeWv = document.getElementById(id);
-        activeWv.classList.add('active');
-        document.getElementById('btn-' + id).classList.add('active');
-        urlInput.value = activeWv.getURL().includes('fisb.html') ? '' : activeWv.getURL();
-    }
-
-    function clearBrowsingData() {
-        const { remote } = require('electron');
-        const ses = getCurrentWebview().getWebContents().session;
-        ses.clearCache().then(() => alert('Cache Cleared!'));
-    }
-
-    function toggleDevTools() {
-        const wv = getCurrentWebview();
-        if (wv) wv.openDevTools();
     }
 
     function handleUrl(e) {
         if (e.key === 'Enter') {
-            const activeWv = getCurrentWebview();
-            let val = urlInput.value;
-            activeWv.src = (val.startsWith('http://') || val.startsWith('https://')) ? val : 'https://' + val;
+            const val = urlInput.value.toLowerCase();
+            if (val === "toshiba satellite c660") {
+                startToshibaRain();
+                urlInput.value = "";
+                return;
+            }
+            getCurrentWebview().src = val.startsWith('http') ? val : 'https://' + val;
         }
     }
 
-    function getCurrentWebview() { return document.querySelector('webview.active'); }
-    function closeTab(id, event) {
-        event.stopPropagation();
-        document.getElementById(id).remove();
-        document.getElementById('btn-' + id).remove();
-        const tabs = document.querySelectorAll('.tab');
-        if (tabs.length === 0) createNewTab();
-        else switchTab(tabs[tabs.length-1].id.replace('btn-', ''));
+    function startToshibaRain() {
+        for(let i=0; i<30; i++) {
+            setTimeout(() => {
+                const img = document.createElement('img');
+                img.src = "https://www.toshiba.eu/images/toshiba-satellite-c660-1.png"; // Tai joku muu läppärikuva
+                img.className = 'falling-toshiba';
+                img.style.left = Math.random() * 100 + "vw";
+                img.style.animationDuration = (Math.random() * 2 + 2) + "s";
+                document.body.appendChild(img);
+                setTimeout(() => img.remove(), 4000);
+            }, i * 150);
+        }
     }
+
+    function switchTab(id) {
+        document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+    }
+
+    function getCurrentWebview() { return document.querySelector('webview.active'); }
+    function toggleDevTools() { getCurrentWebview()?.openDevTools(); }
+    function closeTab(id) { document.getElementById(id).remove(); document.getElementById('btn-' + id).remove(); if(!getCurrentWebview()) createNewTab(); }
 
     window.onload = () => createNewTab();
 </script>
