@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISB v0.2.7</title>
+    <title>Fish Engine | FISB v0.2.8</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
@@ -13,41 +13,10 @@
             background-color: var(--bg);
             background-size: cover; background-position: center; background-attachment: fixed;
             color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; 
-            padding-top: 100px; 
+            padding-top: 50px; /* Vähennetty, koska header on poissa */
             transition: 0.3s; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
         }
-
-        /* --- BROWSER UI HEADER --- */
-        .browser-header {
-            position: fixed; top: 0; left: 0; width: 100%;
-            background: #111; border-bottom: 2px solid var(--accent);
-            display: flex; align-items: center; gap: 15px; padding: 10px 20px;
-            z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-        }
-        .nav-controls { display: flex; gap: 8px; }
-        .nav-btn {
-            background: #222; color: var(--accent); border: 1px solid var(--accent);
-            border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
-            font-weight: bold; font-size: 16px; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .nav-btn:hover { background: var(--accent); color: #000; }
-        
-        .home-btn {
-            background: var(--accent); color: #000; border: none;
-            border-radius: 4px; padding: 6px 12px; font-weight: bold;
-            cursor: pointer; transition: 0.3s; font-size: 12px;
-        }
-        .home-btn:hover { box-shadow: 0 0 15px var(--accent); transform: scale(1.05); }
-
-        .url-bar-container { flex-grow: 1; }
-        .url-input {
-            width: 100%; padding: 8px 15px; border-radius: 20px;
-            background: #000; border: 1px solid #444; color: var(--text);
-            font-family: 'Ubuntu', sans-serif; font-size: 14px; outline: none;
-        }
-        .url-input:focus { border-color: var(--accent); }
 
         /* --- CONTENT --- */
         .logo-area img { 
@@ -73,6 +42,7 @@
         }
         .s-btn:hover { background: var(--accent); transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
 
+        /* --- ADMIN & MODALS --- */
         .admin-bar { 
             position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; align-items: center; 
             background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 50px; 
@@ -99,23 +69,10 @@
         }
         .lang-item.active { background: var(--accent); color: #000; font-weight: bold; }
 
-        .footer { margin-top: 60px; font-size: 12px; color: #777; font-weight: bold; padding-bottom: 20px; }
+        .footer { margin-top: auto; padding: 40px 0 20px; font-size: 12px; color: #777; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div class="browser-header">
-        <div class="nav-controls">
-            <button class="nav-btn" onclick="history.back()">&lt;</button>
-            <button class="nav-btn" onclick="history.forward()">&gt;</button>
-            <button class="nav-btn" onclick="location.reload()">↻</button>
-        </div>
-        <button class="home-btn" onclick="window.location.href='index.html'">HOME</button>
-        <div class="url-bar-container">
-            <input type="text" id="url-bar" class="url-input" placeholder="Syötä URL tai etsi...">
-        </div>
-        <div style="color: var(--accent); font-weight: bold; font-size: 11px; white-space: nowrap;">FISB v0.2.7</div>
-    </div>
 
     <div class="logo-area">
         <img id="main-pfp" src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
@@ -157,7 +114,7 @@
     </div>
 
     <div class="footer">
-        Done Eht | Valkeakoski Engineering | <span id="user-tag" style="color:var(--accent);">Guest</span>
+        Done Eht | Valkeakoski Engineering | <span id="user-tag" style="color:var(--accent);">Guest</span> | v0.2.8
     </div>
 
     <div class="admin-bar">
@@ -178,7 +135,11 @@
 
         function openS(url) { window.location.href = url; }
         
-        function toggleAcc() { const m = document.getElementById('acc-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; if(m.style.display === 'block') { generateLangs(); loadInputs(); } }
+        function toggleAcc() { 
+            const m = document.getElementById('acc-modal'); 
+            m.style.display = (m.style.display === 'block') ? 'none' : 'block'; 
+            if(m.style.display === 'block') { generateLangs(); loadInputs(); } 
+        }
 
         function generateLangs() {
             const container = document.getElementById('lang-list');
@@ -238,16 +199,6 @@
             if(url) { document.body.style.backgroundImage = `url('${url}')`; localStorage.setItem('f_bg', url); }
         }
 
-        // --- SINGLE WINDOW LOCK ---
-        document.addEventListener('click', function(e) {
-            const target = e.target.closest('a');
-            if (target && target.href && !target.href.startsWith('javascript:')) {
-                e.preventDefault();
-                document.getElementById('url-bar').value = target.href;
-                window.location.href = target.href;
-            }
-        });
-
         function handleSearch(query) {
             let q = query.trim();
             if (!q) return;
@@ -263,15 +214,7 @@
             if (e.key === 'Enter') handleSearch(e.target.value);
         };
 
-        document.getElementById('url-bar').onkeydown = (e) => {
-            if (e.key === 'Enter') handleSearch(e.target.value);
-        };
-
         window.onload = () => {
-            document.getElementById('url-bar').value = window.location.href;
-            const urlParams = new URLSearchParams(window.location.search);
-            if(urlParams.get('q')) document.getElementById('search').value = urlParams.get('q');
-            
             const l = localStorage.getItem('f_lang') || 'fi';
             document.getElementById('subtitle').innerText = langs[l].subtitle;
             document.getElementById('search').placeholder = langs[l].placeholder;
