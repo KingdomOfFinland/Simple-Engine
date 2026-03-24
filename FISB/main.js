@@ -1,12 +1,11 @@
 const { app, BrowserWindow, session } = require('electron');
 const path = require('path');
 
-// Yritetään hiljentää VA-API ja pakottaa GPU päälle jos mahdollista
-app.commandLine.appendSwitch('ignore-gpu-blocklist');
-app.commandLine.appendSwitch('enable-gpu-rasterization');
-app.commandLine.appendSwitch('disable-software-rasterizer');
-app.commandLine.appendSwitch('disable-dev-shm-usage');
+// Hiljennetään VA-API ja estetään GPU-sekoilut
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('no-sandbox');
+app.commandLine.appendSwitch('disable-site-isolation-trials');
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -17,17 +16,31 @@ function createWindow () {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      webviewTag: true, // TÄRKEÄ!
-      webSecurity: false 
+      webviewTag: true, // Sallii webview-elementin
+      webSecurity: false
     }
   });
 
-  // Poistetaan estot lennosta
+  // TÄMÄ ON SE RATKAISU PÄIVITYKSEN JÄLKEEN:
+  // Pakotetaan webview-oikeudet päälle kun se yrittää kiinnittyä
+  win.webContents.on('will-attach-webview', (event, webPreferences, params) => {
+    webPreferences.nodeIntegration = true;
+    webPreferences.contextIsolation = false;
+    webPreferences.webSecurity = false;
+  });
+
+  // Poistetaan Header-estot (CORS/X-Frame)
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     let responseHeaders = details.responseHeaders;
     delete responseHeaders['x-frame-options'];
     delete responseHeaders['content-security-policy'];
-    callback({ cancel: false, responseHeaders: { ...responseHeaders, 'Access-Control-Allow-Origin': ['*'] } });
+    callback({
+      cancel: false,
+      responseHeaders: {
+        ...responseHeaders,
+        'Access-Control-Allow-Origin': ['*']
+      }
+    });
   });
 
   win.loadFile(path.join(__dirname, 'index.html'));
