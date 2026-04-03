@@ -2,7 +2,7 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <title>Fish Browser v1.0 | Ultimate Global</title>
+    <title>Fish Browser v1.1.5 | Ultimate Global</title>
     <style id="theme-style">
         /* 1. KAIKKI FONTIT JA DARK MODE PERUS-ASETUKSET */
         :root { 
@@ -159,95 +159,93 @@ function setTheme(t) {
     if(t === 'neon') { r.style.setProperty('--accent', '#ff4444'); r.style.setProperty('--text', '#00ff00'); }
     if(t === 'matrix') { r.style.setProperty('--accent', '#00ff00'); r.style.setProperty('--text', '#00ff00'); }
 }
+let tabCount = 0;
 
 function createNewTab(url = "https://www.google.com") {
-    const id = 'tab-' + (++tabCount);
+    // 1. Estetään ID-sekoilut
+    const id = 'webview-' + (++tabCount);
+    const tabId = 'btn-' + id;
+
+    // 2. Luodaan välilehtipainike
     const tab = document.createElement('div');
     tab.className = 'tab'; 
-    tab.id = 'btn-' + id;
+    tab.id = tabId;
     
-    // TÄRKEÄ: onclick-suljin käyttää event.stopPropagation()
+    // TÄRKEÄ: onclick-suljin käyttää stopPropagationia JA stopImmediatePropagationia
     tab.innerHTML = `
-        <span>Tab ${tabCount}</span>
-        <span class="close-btn" style="margin-left:8px; cursor:pointer;" 
+        <span class="tab-title">Tab ${tabCount}</span>
+        <span class="close-btn" style="margin-left:10px; font-weight:bold; cursor:pointer;" 
               onclick="event.stopPropagation(); event.stopImmediatePropagation(); closeTab('${id}')">×</span>
     `;
     
-    tab.onclick = () => switchTab(id);
+    // Välilehden vaihtaminen vain jos klikataan itse välilehteä (ei ruksia)
+    tab.onclick = (e) => {
+        if (e.target.className !== 'close-btn') {
+            switchTab(id);
+        }
+    };
+    
     document.getElementById('tabs-container').appendChild(tab);
 
-    const wv = document.createElement('webview');
-    wv.id = id;
-    // ... muut webview-asetukset (useragent, jne.) ...
-    document.getElementById('content-area').appendChild(wv);
-
-    switchTab(id);
-    wv.src = url;
-}
-
+    // 3. Luodaan WebView
     const wv = document.createElement('webview');
     wv.id = id;
     wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
     wv.setAttribute('webpreferences', 'contextIsolation=no, nodeIntegration=yes');
     
-    // ZERO-RENDER YOUTUBE ADBLOCK
+    // --- AdBlock & YT-Bypass logiikka tähän väliin ---
     wv.addEventListener('dom-ready', () => {
-        wv.insertCSS(`
-            ytd-ad-slot-renderer, ytd-companion-slot-renderer, .ad-container, 
-            .ad-showing, #player-ads, .ytp-ad-module, .ytp-ad-overlay-container { 
-                display: none !important; 
-            }
-        `);
-        wv.executeJavaScript(`
-            setInterval(() => {
-                const video = document.querySelector('video');
-                if (document.querySelector('.ad-showing, .ad-interrupting')) {
-                    video.currentTime = video.duration;
-                }
-                const skipBtn = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern');
-                if (skipBtn) skipBtn.click();
-            }, 100);
-        `);
+        wv.insertCSS(`ytd-ad-slot-renderer, .ad-showing, #player-ads { display: none !important; }`);
     });
 
     document.getElementById('content-area').appendChild(wv);
-    wv.addEventListener('did-navigate', (e) => {
-        history.push({url: e.url, time: Date.now()});
-        localStorage.setItem('fisb_history', JSON.stringify(history.slice(-50)));
-        if (wv.classList.contains('active')) document.getElementById('url-input').value = e.url;
-    });
 
+    // Aktivoi uusi välilehti heti
     switchTab(id);
     wv.src = url;
-}
-
-function switchTab(id) {
-    document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.getElementById('btn-' + id).classList.add('active');
-    try { document.getElementById('url-input').value = document.getElementById(id).getURL(); } catch(e){}
 }
 
 function closeTab(id) {
     const tabBtn = document.getElementById('btn-' + id);
     const webview = document.getElementById(id);
 
-    // Jos molemmat löytyvät, poistetaan ne
+    // Tarkistetaan onko välilehti aktiivinen ennen poistoa
+    const wasActive = tabBtn && tabBtn.classList.contains('active');
+
     if (tabBtn) tabBtn.remove();
     if (webview) webview.remove();
 
-    // Etsitään kaikki jäljellä olevat välilehdet
     const remainingTabs = document.querySelectorAll('.tab');
 
     if (remainingTabs.length > 0) {
-        // Jos poistettu välilehti oli aktiivinen, vaihdetaan viimeisimpään jäljellä olevaan
-        const lastTab = remainingTabs[remainingTabs.length - 1];
-        const lastTabId = lastTab.id.replace('btn-', '');
-        switchTab(lastTabId);
+        // Jos suljettiin aktiivinen välilehti, hypätään viimeisimpään
+        if (wasActive) {
+            const lastTabId = remainingTabs[remainingTabs.length - 1].id.replace('btn-', '');
+            switchTab(lastTabId);
+        }
     } else {
-        // Jos kaikki välilehdet on suljettu, luodaan vain YKSI uusi
-        tabCount = 0; // Nollataan laskuri jos haluat
+        // Jos ei ole yhtään jäljellä, nollataan ja luodaan yksi uusi (estää loopin)
+        tabCount = 0;
         createNewTab();
+    }
+}
+
+function switchTab(id) {
+    // Siivotaan vanhat aktiiviset
+    document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
+    
+    // Aktivoidaan uusi
+    const targetWv = document.getElementById(id);
+    const targetBtn = document.getElementById('btn-' + id);
+    
+    if (targetWv && targetBtn) {
+        targetWv.classList.add('active');
+        targetBtn.classList.add('active');
+        
+        // Päivitä osoitepalkki (try-catch siltä varalta ettei webview ole vielä ladannut)
+        try {
+            document.getElementById('url-input').value = targetWv.getURL() || "";
+        } catch(e) {}
     }
 }
 
