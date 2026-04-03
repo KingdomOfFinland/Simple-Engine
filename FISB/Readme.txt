@@ -5,3 +5,6 @@ CTR+ALT+T
 in Terminal, run the following, separately:
 cd FISB
 npx electron .
+
+Windows
+idk yet
