@@ -2,7 +2,7 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <title>Fish Browser v0.4.0.5 | Ultimate Global</title>
+    <title>Fish Browser v0.4.1 | Ultimate Global</title>
     <style id="theme-style">
         :root { --main-bg: #000; --ui-bg: #111; --accent: #ff4444; --text: #00ff00; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--main-bg); font-family: 'Segoe UI', sans-serif; overflow: hidden; color: white; }
@@ -35,7 +35,7 @@
 <div id="overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;z-index:999;" onclick="toggleMenu()"></div>
 
 <div id="side-menu">
-    <h3 id="txt-settings" style="color: var(--accent);">SETTINGS</h3>
+    <h3 id="txt-settings" style="color: var(--accent);">Settings</h3>
     <p id="location-status" style="font-size: 10px; color: #888;">Detecting location...</p>
     
     <div style="margin-bottom: 15px;">
@@ -51,6 +51,7 @@
             <button class="lang-btn" onclick="setLanguage('es')">ES</button>
             <button class="lang-btn" onclick="setLanguage('ro')">RO</button>
             <button class="lang-btn" onclick="setLanguage('sv')">SV</button>
+            <button class="lang-btn" onclick="setLanguage('ja')">JA</button>
         </div>
     </div>
 
@@ -97,7 +98,8 @@
         de: { settings: "EINSTELLUNGEN", lang: "Sprache", themes: "Themen", history: "Verlauf", inspect: "Untersuchen", placeholder: "Suche..." },
         es: { settings: "AJUSTES", lang: "Idioma", themes: "Temas", history: "Historial", inspect: "Inspeccionar", placeholder: "Buscar..." },
         ro: { settings: "SETĂRI", lang: "Limbă", themes: "Teme", history: "Istoric", inspect: "Inspectează", placeholder: "Caută..." },
-        sv: { settings: "INSTÄLLNINGAR", lang: "Språk", themes: "Teman", history: "Historik", inspect: "Inspektera", placeholder: "Sök..." }
+        sv: { settings: "INSTÄLLNINGAR", lang: "Språk", themes: "Teman", history: "Historik", inspect: "Inspektera", placeholder: "Sök..." },
+        ja: { settings: "設定", lang: "言語", themes: "テーマ", history: "歴史", inspect: "検査する", placeholder: "検索..." }
     };
 
     let history = JSON.parse(localStorage.getItem('fisb_history')) || [];
@@ -111,7 +113,7 @@
             const countryCode = data.country_code.toLowerCase();
             document.getElementById('location-status').innerText = `Location: ${data.city}, ${data.country_name}`;
             
-            const map = { fi:'fi', ee:'et', cn:'zh', ru:'ru', ua:'uk', de:'de', es:'es', ro:'ro', se:'sv' };
+            const map = { fi:'fi', ee:'et', cn:'zh', ru:'ru', ua:'uk', de:'de', es:'es', ro:'ro', se:'sv', ja:'ja' };
             const detected = map[countryCode] || 'en';
             if(!localStorage.getItem('fisb_lang')) setLanguage(detected);
         } catch(e) {
