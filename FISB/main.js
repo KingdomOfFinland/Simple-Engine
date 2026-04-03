@@ -12,7 +12,7 @@ function createWindow () {
     width: 1280,
     height: 800,
     backgroundColor: '#000000',
-    title: "Fish Browser v0.4.0 | Ultimate",
+    title: "Fish Browser v1.1 | Bluefin",
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -21,9 +21,31 @@ function createWindow () {
     }
   });
 
-  // --- LATAUSLOGIIKKA ALKAA ---
+  // --- 🛡️ NUCLEAR ADBLOCK ALKAA ---
+  const adBlockList = [
+    "*://*.doubleclick.net/*",
+    "*://*.googleadservices.com/*",
+    "*://*.googlesyndication.com/*",
+    "*://*/pagead/*",
+    "*://*/ptracking/*",
+    "*://*/ad_status/*",
+    "*://*/ad_break/*",
+    "*://www.youtube.com/api/stats/ads*",
+    "*://www.youtube.com/get_midroll_info*",
+    "*://*.moatads.com/*",
+    "*://*.adnxs.com/*",
+    "*://*.ads-twitter.com/*"
+  ];
+
+  // Estetään mainospyynnöt verkkotasolla
+  session.defaultSession.webRequest.onBeforeRequest({ urls: adBlockList }, (details, callback) => {
+    console.log("BLUEFIN BLOCK: Tappoi mainoksen -> " + details.url);
+    callback({ cancel: true });
+  });
+  // --- 🛡️ NUCLEAR ADBLOCK PÄÄTTYY ---
+
+  // --- 📥 LATAUSLOGIIKKA ALKAA ---
   session.defaultSession.on('will-download', (event, item, webContents) => {
-    // Asetetaan polku Windowsin Downloads-kansioon
     const downloadPath = path.join(process.env.USERPROFILE, 'Downloads', item.getFilename());
     item.setSavePath(downloadPath);
 
@@ -31,10 +53,7 @@ function createWindow () {
 
     item.on('updated', (event, state) => {
       if (state === 'progressing') {
-        if (item.isPaused()) {
-          console.log('Lataus keskeytetty');
-        } else {
-          // Voit lähettää tämän tiedon käyttöliittymään jos haluat progress barin
+        if (!item.isPaused()) {
           console.log(`Ladattu: ${item.getReceivedBytes()} bytes`);
         }
       }
@@ -48,7 +67,7 @@ function createWindow () {
       }
     });
   });
-  // --- LATAUSLOGIIKKA PÄÄTTYY ---
+  // --- 📥 LATAUSLOGIIKKA PÄÄTTYY ---
 
   // Pakotetaan webview-oikeudet päälle
   win.webContents.on('will-attach-webview', (event, webPreferences, params) => {
@@ -57,11 +76,12 @@ function createWindow () {
     webPreferences.webSecurity = false;
   });
 
-  // Poistetaan Header-estot (CORS/X-Frame)
+  // Poistetaan Header-estot ja hoidetaan CSP-puhdistus
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     let responseHeaders = details.responseHeaders;
     delete responseHeaders['x-frame-options'];
     delete responseHeaders['content-security-policy'];
+    
     callback({
       cancel: false,
       responseHeaders: {
