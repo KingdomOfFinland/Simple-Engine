@@ -222,8 +222,15 @@ function getCurrentWebview() { return document.querySelector('webview.active'); 
 
 function handleUrl(e) {
     if (e.key === 'Enter') {
-        let val = e.target.value;
-        if (val.toLowerCase() === "toshiba satellite c660") { startToshibaRain(); e.target.value = ""; return; }
+        let val = e.target.value.toLowerCase();
+        
+        // Nyt toimii molemmilla koodeilla!
+        if (val === "toshiba satellite c660" || val === "toshiba satellite c660-15v") { 
+            startToshibaRain(); 
+            e.target.value = ""; 
+            return; 
+        }
+        
         if (!val.startsWith('http')) val = 'https://' + val;
         getCurrentWebview().src = val;
     }
