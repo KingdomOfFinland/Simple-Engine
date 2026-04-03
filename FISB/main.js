@@ -1,7 +1,7 @@
 const { app, BrowserWindow, session } = require('electron');
 const path = require('path');
 
-// Hiljennetään VA-API ja estetään GPU-sekoilut
+// Hiljennetään VA-API ja estetään GPU-sekoilut (Win7 fixit)
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('no-sandbox');
@@ -16,13 +16,41 @@ function createWindow () {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      webviewTag: true, // Sallii webview-elementin
+      webviewTag: true, 
       webSecurity: false
     }
   });
 
-  // TÄMÄ ON SE RATKAISU PÄIVITYKSEN JÄLKEEN:
-  // Pakotetaan webview-oikeudet päälle kun se yrittää kiinnittyä
+  // --- LATAUSLOGIIKKA ALKAA ---
+  session.defaultSession.on('will-download', (event, item, webContents) => {
+    // Asetetaan polku Windowsin Downloads-kansioon
+    const downloadPath = path.join(process.env.USERPROFILE, 'Downloads', item.getFilename());
+    item.setSavePath(downloadPath);
+
+    console.log(`Ladataan: ${item.getFilename()} -> ${downloadPath}`);
+
+    item.on('updated', (event, state) => {
+      if (state === 'progressing') {
+        if (item.isPaused()) {
+          console.log('Lataus keskeytetty');
+        } else {
+          // Voit lähettää tämän tiedon käyttöliittymään jos haluat progress barin
+          console.log(`Ladattu: ${item.getReceivedBytes()} bytes`);
+        }
+      }
+    });
+
+    item.once('done', (event, state) => {
+      if (state === 'completed') {
+        console.log('Lataus valmis!');
+      } else {
+        console.log(`Lataus epäonnistui: ${state}`);
+      }
+    });
+  });
+  // --- LATAUSLOGIIKKA PÄÄTTYY ---
+
+  // Pakotetaan webview-oikeudet päälle
   win.webContents.on('will-attach-webview', (event, webPreferences, params) => {
     webPreferences.nodeIntegration = true;
     webPreferences.contextIsolation = false;
