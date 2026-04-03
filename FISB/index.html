@@ -13,13 +13,12 @@
             --webview-bg: #ffffff;
         }
 
-body, html { 
-    margin: 0; padding: 0; height: 100%; 
-    background: var(--main-bg); 
-    /* Lisätty 'MS Gothic' ja 'SimSun' Windows 7 tukea varten */
-    font-family: 'Segoe UI', 'MS Gothic', 'SimSun', sans-serif; 
-    overflow: hidden; color: white; 
-}
+        body, html { 
+            margin: 0; padding: 0; height: 100%; 
+            background: var(--main-bg); 
+            /* Kaikki fontit: Segoe UI (Win7), MS Gothic (JA), SimSun (ZH) */
+            font-family: 'Segoe UI', 'MS Gothic', 'SimSun', Tahoma, Geneva, Verdana, sans-serif; 
+            overflow: hidden; color: white; 
         }
 
         #browser-ui { display: flex; flex-direction: column; height: 100%; position: relative; z-index: 2; }
@@ -55,7 +54,7 @@ body, html {
 <div id="overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;z-index:999;" onclick="toggleMenu()"></div>
 
 <div id="side-menu">
-    <h3 id="txt-settings" style="color: var(--accent);">Settings</h3>
+    <h3 id="txt-settings" style="color: var(--accent);">SETTINGS</h3>
     <p id="location-status" style="font-size: 10px; color: #888;">Detecting location...</p>
     
     <div style="margin-bottom: 15px;">
@@ -112,7 +111,6 @@ body, html {
 </div>
 
 <script>
-    // i18n Kielituki
 const i18n = {
     fi: { settings: "ASETUKSET", lang: "Kieli", themes: "Teemat", history: "Historia", inspect: "Tarkasta", placeholder: "Hae tai kirjoita osoite..." },
     en: { settings: "SETTINGS", lang: "Language", themes: "Themes", history: "History", inspect: "Inspect", placeholder: "Search or enter URL..." },
@@ -126,130 +124,151 @@ const i18n = {
     sv: { settings: "INSTÄLLNINGAR", lang: "Språk", themes: "Teman", history: "Historik", inspect: "Inspektera", placeholder: "Sök..." },
     ja: { settings: "設定", lang: "言語", themes: "テーマ", history: "歴史", inspect: "検査する", placeholder: "検索..." }
 };
-    };
 
-    let tabCount = 0;
-    let history = JSON.parse(localStorage.getItem('fisb_history')) || [];
-    let bookmarks = JSON.parse(localStorage.getItem('fisb_bookmarks')) || [{ name: 'GitHub', url: 'https://github.com' }];
+let tabCount = 0;
+let history = JSON.parse(localStorage.getItem('fisb_history')) || [];
+let bookmarks = JSON.parse(localStorage.getItem('fisb_bookmarks')) || [{ name: 'GitHub', url: 'https://github.com' }];
 
-    // AUTODETECT LOCATION & LANG
-    async function autoDetectLanguage() {
-        try {
-            const res = await fetch('https://ipapi.co/json/');
-            const data = await res.json();
-            document.getElementById('location-status').innerText = `Location: ${data.city}, ${data.country_name}`;
-            const countryCode = data.country_code.toLowerCase();
-            const map = { fi:'fi', ee:'et', ru:'ru' };
-            const detected = map[countryCode] || 'en';
-            if(!localStorage.getItem('fisb_lang')) setLanguage(detected);
-        } catch(e) { setLanguage(localStorage.getItem('fisb_lang') || 'en'); }
+async function autoDetectLanguage() {
+    try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        document.getElementById('location-status').innerText = `Location: ${data.city}, ${data.country_name}`;
+        const map = { fi:'fi', ee:'et', ru:'ru', cn:'zh', jp:'ja', de:'de' };
+        const detected = map[data.country_code.toLowerCase()] || 'en';
+        if(!localStorage.getItem('fisb_lang')) setLanguage(detected);
+    } catch(e) { setLanguage(localStorage.getItem('fisb_lang') || 'en'); }
+}
+
+function setLanguage(lang) {
+    if(!i18n[lang]) lang = 'en';
+    localStorage.setItem('fisb_lang', lang);
+    document.getElementById('txt-settings').innerText = i18n[lang].settings;
+    document.getElementById('txt-lang').innerText = i18n[lang].lang + ":";
+    document.getElementById('txt-themes').innerText = i18n[lang].themes + ":";
+    document.getElementById('txt-history').innerText = i18n[lang].history + ":";
+    document.getElementById('txt-inspect').innerText = i18n[lang].inspect;
+    document.getElementById('url-input').placeholder = i18n[lang].placeholder;
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.toLowerCase() === lang);
+    });
+}
+
+function setTheme(t) {
+    const r = document.querySelector(':root');
+    if(t === 'neon') { r.style.setProperty('--accent', '#ff4444'); r.style.setProperty('--text', '#00ff00'); }
+    if(t === 'matrix') { r.style.setProperty('--accent', '#00ff00'); r.style.setProperty('--text', '#00ff00'); }
+}
+
+function createNewTab(url = "https://www.google.com") {
+    const id = 'tab-' + (++tabCount);
+    const tab = document.createElement('div');
+    tab.className = 'tab'; tab.id = 'btn-' + id;
+    tab.innerHTML = `Tab ${tabCount} <span style="margin-left:8px;" onclick="event.stopPropagation(); closeTab('${id}')">×</span>`;
+    tab.onclick = () => switchTab(id);
+    document.getElementById('tabs-container').appendChild(tab);
+
+    const wv = document.createElement('webview');
+    wv.id = id;
+    wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    wv.setAttribute('webpreferences', 'contextIsolation=no, nodeIntegration=yes');
+    
+    // ZERO-RENDER YOUTUBE ADBLOCK
+    wv.addEventListener('dom-ready', () => {
+        wv.insertCSS(`
+            ytd-ad-slot-renderer, ytd-companion-slot-renderer, .ad-container, 
+            .ad-showing, #player-ads, .ytp-ad-module, .ytp-ad-overlay-container { 
+                display: none !important; 
+            }
+        `);
+        wv.executeJavaScript(`
+            setInterval(() => {
+                const video = document.querySelector('video');
+                if (document.querySelector('.ad-showing, .ad-interrupting')) {
+                    video.currentTime = video.duration;
+                }
+                const skipBtn = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern');
+                if (skipBtn) skipBtn.click();
+            }, 100);
+        `);
+    });
+
+    document.getElementById('content-area').appendChild(wv);
+    wv.addEventListener('did-navigate', (e) => {
+        history.push({url: e.url, time: Date.now()});
+        localStorage.setItem('fisb_history', JSON.stringify(history.slice(-50)));
+        if (wv.classList.contains('active')) document.getElementById('url-input').value = e.url;
+    });
+
+    switchTab(id);
+    wv.src = url;
+}
+
+function switchTab(id) {
+    document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('btn-' + id).classList.add('active');
+    try { document.getElementById('url-input').value = document.getElementById(id).getURL(); } catch(e){}
+}
+
+function closeTab(id) {
+    document.getElementById(id).remove();
+    document.getElementById('btn-' + id).remove();
+    if(!getCurrentWebview()) createNewTab();
+    else switchTab(document.querySelector('webview').id);
+}
+
+function getCurrentWebview() { return document.querySelector('webview.active'); }
+
+function handleUrl(e) {
+    if (e.key === 'Enter') {
+        let val = e.target.value;
+        if (val.toLowerCase() === "toshiba satellite c660") { startToshibaRain(); e.target.value = ""; return; }
+        if (!val.startsWith('http')) val = 'https://' + val;
+        getCurrentWebview().src = val;
     }
+}
 
-    function setLanguage(lang) {
-        if(!i18n[lang]) lang = 'en';
-        localStorage.setItem('fisb_lang', lang);
-        document.getElementById('txt-settings').innerText = i18n[lang].settings;
-        document.getElementById('txt-lang').innerText = i18n[lang].lang + ":";
-        document.getElementById('txt-themes').innerText = i18n[lang].themes + ":";
-        document.getElementById('txt-history').innerText = i18n[lang].history + ":";
-        document.getElementById('txt-inspect').innerText = i18n[lang].inspect;
-        document.getElementById('url-input').placeholder = i18n[lang].placeholder;
+function toggleMenu() {
+    const menu = document.getElementById('side-menu');
+    menu.classList.toggle('open');
+    document.getElementById('overlay').style.display = menu.classList.contains('open') ? 'block' : 'none';
+    document.getElementById('history-list').innerHTML = history.slice(-10).reverse().map(h => `<div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:2px;">${h.url}</div>`).join('');
+}
+
+function startToshibaRain() {
+    for(let i=0; i<15; i++) {
+        setTimeout(() => {
+            const img = document.createElement('img');
+            img.src = "https://www.toshiba.eu/images/toshiba-satellite-c660-1.png";
+            img.className = 'falling-toshiba';
+            img.style.left = Math.random() * 90 + "vw";
+            img.style.animationDuration = (Math.random() * 2 + 1) + "s";
+            document.body.appendChild(img);
+            setTimeout(() => img.remove(), 3000);
+        }, i * 200);
     }
+}
 
-    function setTheme(t) {
-        const r = document.querySelector(':root');
-        if(t === 'neon') { r.style.setProperty('--accent', '#ff4444'); r.style.setProperty('--text', '#00ff00'); }
-        if(t === 'matrix') { r.style.setProperty('--accent', '#00ff00'); r.style.setProperty('--text', '#00ff00'); }
-    }
-
-    function createNewTab(url = "https://www.google.com") {
-        const id = 'tab-' + (++tabCount);
-        const tab = document.createElement('div');
-        tab.className = 'tab'; tab.id = 'btn-' + id;
-        tab.innerHTML = `Tab ${tabCount} <span style="margin-left:8px;" onclick="event.stopPropagation(); closeTab('${id}')">×</span>`;
-        tab.onclick = () => switchTab(id);
-        document.getElementById('tabs-container').appendChild(tab);
-
-        const wv = document.createElement('webview');
-        wv.id = id;
-        wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-        wv.setAttribute('webpreferences', 'contextIsolation=no, nodeIntegration=yes');
-        document.getElementById('content-area').appendChild(wv);
-        
-        wv.addEventListener('did-navigate', (e) => {
-            history.push({url: e.url, time: Date.now()});
-            localStorage.setItem('fisb_history', JSON.stringify(history.slice(-50)));
-            if (wv.classList.contains('active')) document.getElementById('url-input').value = e.url;
-        });
-
-        switchTab(id);
-        wv.src = url;
-    }
-
-    function switchTab(id) {
-        document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.getElementById('btn-' + id).classList.add('active');
-        document.getElementById('url-input').value = document.getElementById(id).getURL() || "";
-    }
-
-    function closeTab(id) {
-        document.getElementById(id).remove();
-        document.getElementById('btn-' + id).remove();
-        if(!getCurrentWebview()) createNewTab();
-        else switchTab(document.querySelector('webview').id);
-    }
-
-    function getCurrentWebview() { return document.querySelector('webview.active'); }
-
-    function handleUrl(e) {
-        if (e.key === 'Enter') {
-            let val = e.target.value;
-            if (val.toLowerCase() === "toshiba satellite c660") { startToshibaRain(); e.target.value = ""; return; }
-            if (!val.startsWith('http')) val = 'https://' + val;
-            getCurrentWebview().src = val;
-        }
-    }
-
-    function toggleMenu() {
-        const menu = document.getElementById('side-menu');
-        menu.classList.toggle('open');
-        document.getElementById('overlay').style.display = menu.classList.contains('open') ? 'block' : 'none';
-        document.getElementById('history-list').innerHTML = history.slice(-10).reverse().map(h => `<div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${h.url}</div>`).join('');
-    }
-
-    function startToshibaRain() {
-        for(let i=0; i<15; i++) {
-            setTimeout(() => {
-                const img = document.createElement('img');
-                img.src = "https://www.toshiba.eu/images/toshiba-satellite-c660-1.png"; // Varmista että linkki toimii tai käytä paikallista kuvaa
-                img.className = 'falling-toshiba';
-                img.style.left = Math.random() * 90 + "vw";
-                img.style.animationDuration = (Math.random() * 2 + 1) + "s";
-                document.body.appendChild(img);
-                setTimeout(() => img.remove(), 3000);
-            }, i * 200);
-        }
-    }
-
-    function addCurrentAsBookmark() {
-        const url = getCurrentWebview().getURL();
-        if(url) {
-            bookmarks.push({ name: url.split('/')[2] || 'New Link', url });
-            updateBookmarksUI();
-        }
-    }
-
-    function updateBookmarksUI() {
-        document.getElementById('bookmarks-container').innerHTML = bookmarks.map(b => `<span style="cursor:pointer;color:var(--accent);" onclick="getCurrentWebview().src='${b.url}'">${b.name}</span>`).join('');
-        localStorage.setItem('fisb_bookmarks', JSON.stringify(bookmarks));
-    }
-
-    window.onload = () => { 
-        autoDetectLanguage(); 
-        createNewTab(); 
+function addCurrentAsBookmark() {
+    const url = getCurrentWebview().getURL();
+    if(url) {
+        bookmarks.push({ name: url.split('/')[2] || 'Link', url });
         updateBookmarksUI();
-    };
+    }
+}
+
+function updateBookmarksUI() {
+    document.getElementById('bookmarks-container').innerHTML = bookmarks.map(b => `<span style="cursor:pointer;color:var(--accent);" onclick="getCurrentWebview().src='${b.url}'">${b.name}</span>`).join('');
+    localStorage.setItem('fisb_bookmarks', JSON.stringify(bookmarks));
+}
+
+window.onload = () => { 
+    autoDetectLanguage(); 
+    setLanguage(localStorage.getItem('fisb_lang') || 'en');
+    createNewTab(); 
+    updateBookmarksUI();
+};
 </script>
 </body>
 </html>
