@@ -161,88 +161,66 @@ function setTheme(t) {
 }
 let tabCount = 0;
 
+let tabCount = 0;
+
+// 1. VARMISTETAAN ETTÄ ALOITUS ONNISTUU
+window.onload = () => {
+    console.log("FISB v1.1.5: Käynnistys...");
+    createNewTab("https://www.google.com"); // Luo se ensimmäinen välilehti!
+};
+
 function createNewTab(url = "https://www.google.com") {
-    // 1. Estetään ID-sekoilut
-    const id = 'webview-' + (++tabCount);
+    tabCount++;
+    const id = 'wv-' + tabCount;
     const tabId = 'btn-' + id;
 
-    // 2. Luodaan välilehtipainike
+    // LUODAAN PAINIKE
     const tab = document.createElement('div');
     tab.className = 'tab'; 
     tab.id = tabId;
-    
-    // TÄRKEÄ: onclick-suljin käyttää stopPropagationia JA stopImmediatePropagationia
     tab.innerHTML = `
-        <span class="tab-title">Tab ${tabCount}</span>
-        <span class="close-btn" style="margin-left:10px; font-weight:bold; cursor:pointer;" 
-              onclick="event.stopPropagation(); event.stopImmediatePropagation(); closeTab('${id}')">×</span>
+        <span>Tab ${tabCount}</span>
+        <span class="close-btn" style="margin-left:10px; cursor:pointer;" 
+              onclick="event.stopPropagation(); closeTab('${id}')">×</span>
     `;
     
-    // Välilehden vaihtaminen vain jos klikataan itse välilehteä (ei ruksia)
-    tab.onclick = (e) => {
-        if (e.target.className !== 'close-btn') {
-            switchTab(id);
-        }
-    };
-    
+    tab.onclick = () => switchTab(id);
     document.getElementById('tabs-container').appendChild(tab);
 
-    // 3. Luodaan WebView
+    // LUODAAN WEBVIEW
     const wv = document.createElement('webview');
     wv.id = id;
+    wv.className = 'tab-content'; // Varmista että CSS:ssä on .tab-content { display:none; }
     wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
     wv.setAttribute('webpreferences', 'contextIsolation=no, nodeIntegration=yes');
     
-    // --- AdBlock & YT-Bypass logiikka tähän väliin ---
-    wv.addEventListener('dom-ready', () => {
-        wv.insertCSS(`ytd-ad-slot-renderer, .ad-showing, #player-ads { display: none !important; }`);
-    });
-
     document.getElementById('content-area').appendChild(wv);
 
-    // Aktivoi uusi välilehti heti
-    switchTab(id);
-    wv.src = url;
-}
-
-function closeTab(id) {
-    const tabBtn = document.getElementById('btn-' + id);
-    const webview = document.getElementById(id);
-
-    // Tarkistetaan onko välilehti aktiivinen ennen poistoa
-    const wasActive = tabBtn && tabBtn.classList.contains('active');
-
-    if (tabBtn) tabBtn.remove();
-    if (webview) webview.remove();
-
-    const remainingTabs = document.querySelectorAll('.tab');
-
-    if (remainingTabs.length > 0) {
-        // Jos suljettiin aktiivinen välilehti, hypätään viimeisimpään
-        if (wasActive) {
-            const lastTabId = remainingTabs[remainingTabs.length - 1].id.replace('btn-', '');
-            switchTab(lastTabId);
-        }
-    } else {
-        // Jos ei ole yhtään jäljellä, nollataan ja luodaan yksi uusi (estää loopin)
-        tabCount = 0;
-        createNewTab();
-    }
+    // Aktivoi heti
+    setTimeout(() => {
+        switchTab(id);
+        wv.src = url;
+    }, 10); 
 }
 
 function switchTab(id) {
-    // Siivotaan vanhat aktiiviset
-    document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
-    
-    // Aktivoidaan uusi
+    const allWebviews = document.querySelectorAll('webview');
+    const allTabs = document.querySelectorAll('.tab');
+
+    // Piilota kaikki
+    allWebviews.forEach(wv => wv.style.display = 'none');
+    allTabs.forEach(t => t.classList.remove('active'));
+
+    // Näytä valittu
     const targetWv = document.getElementById(id);
     const targetBtn = document.getElementById('btn-' + id);
-    
+
     if (targetWv && targetBtn) {
-        targetWv.classList.add('active');
+        targetWv.style.display = 'flex'; // Tai 'block' riippuen CSS:stä
+        targetWv.style.width = '100%';
+        targetWv.style.height = '100%';
         targetBtn.classList.add('active');
         
-        // Päivitä osoitepalkki (try-catch siltä varalta ettei webview ole vielä ladannut)
         try {
             document.getElementById('url-input').value = targetWv.getURL() || "";
         } catch(e) {}
