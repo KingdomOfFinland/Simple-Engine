@@ -2,30 +2,50 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <title>Fish Browser v0.4.1 | Ultimate Global</title>
+    <title>Fish Browser v1.0 | Ultimate Global</title>
     <style id="theme-style">
-        :root { --main-bg: #000; --ui-bg: #111; --accent: #ff4444; --text: #00ff00; }
-        body, html { margin: 0; padding: 0; height: 100%; background: var(--main-bg); font-family: 'Segoe UI', sans-serif; overflow: hidden; color: white; }
+        /* 1. KAIKKI FONTIT JA DARK MODE PERUS-ASETUKSET */
+        :root { 
+            --main-bg: #000; 
+            --ui-bg: #111; 
+            --accent: #ff4444; 
+            --text: #00ff00; 
+            --webview-bg: #ffffff;
+        }
+
+body, html { 
+    margin: 0; padding: 0; height: 100%; 
+    background: var(--main-bg); 
+    /* Lisätty 'MS Gothic' ja 'SimSun' Windows 7 tukea varten */
+    font-family: 'Segoe UI', 'MS Gothic', 'SimSun', sans-serif; 
+    overflow: hidden; color: white; 
+}
+        }
+
         #browser-ui { display: flex; flex-direction: column; height: 100%; position: relative; z-index: 2; }
         
+        /* 2. TABS & NAV BAR (DARK MODE STYLE) */
         #tabs-bar { display: flex; background: var(--ui-bg); padding: 5px; gap: 5px; border-bottom: 2px solid var(--accent); align-items: center; }
         .tab { background: #222; color: #fff; padding: 6px 12px; border-radius: 5px 5px 0 0; cursor: pointer; min-width: 100px; font-size: 11px; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        .tab.active { background: var(--accent); }
+        .tab.active { background: var(--accent); color: #000; font-weight: bold; }
 
         #nav-bar { display: flex; background: #1a1a1a; padding: 8px 12px; gap: 10px; align-items: center; }
-        .nav-btn { background: #333; border: 1px solid #555; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .nav-btn:hover { background: var(--accent); }
-        input#url-input { flex-grow: 1; background: #000; border: 1px solid #444; color: var(--text); padding: 7px 15px; border-radius: 20px; outline: none; font-family: monospace; }
+        .nav-btn { background: #333; border: 1px solid #555; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .nav-btn:hover { background: var(--accent); color: black; }
         
-        #side-menu { position: fixed; top: 0; right: -300px; width: 300px; height: 100%; background: #111; color: white; z-index: 1000; transition: 0.3s; border-left: 2px solid var(--accent); padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        input#url-input { flex-grow: 1; background: #000; border: 1px solid #444; color: var(--text); padding: 7px 15px; border-radius: 20px; outline: none; font-family: 'Consolas', monospace; }
+        
+        /* SIDE MENU (DARK SETTINGS) */
+        #side-menu { position: fixed; top: 0; right: -300px; width: 300px; height: 100%; background: #111; color: white; z-index: 1000; transition: 0.3s; border-left: 2px solid var(--accent); padding: 20px; box-sizing: border-box; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.5); }
         #side-menu.open { right: 0; }
-        .lang-btn { background: #444; color: white; border: none; padding: 4px 8px; margin: 2px; cursor: pointer; border-radius: 3px; font-size: 10px; }
-        .lang-btn.active { background: var(--accent); }
+        .lang-btn { background: #444; color: white; border: none; padding: 6px 10px; margin: 2px; cursor: pointer; border-radius: 3px; font-size: 11px; }
+        .lang-btn.active { background: var(--accent); color: black; }
 
-        #content-area { flex-grow: 1; position: relative; background: #fff; }
-        webview { width: 100%; height: 100%; display: none; background: white; }
+        #content-area { flex-grow: 1; position: relative; background: var(--webview-bg); }
+        webview { width: 100%; height: 100%; display: none; }
         webview.active { display: flex; }
 
+        /* EASTER EGG */
         .falling-toshiba { position: fixed; top: -100px; z-index: 9999; width: 80px; pointer-events: none; animation: fall linear forwards; }
         @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
     </style>
@@ -40,7 +60,7 @@
     
     <div style="margin-bottom: 15px;">
         <p><b id="txt-lang">Language:</b></p>
-        <div id="lang-container" style="display: flex; flex-wrap: wrap;">
+        <div id="lang-container" style="display: flex; flex-wrap: wrap; gap: 4px;">
             <button class="lang-btn" onclick="setLanguage('fi')">FI</button>
             <button class="lang-btn" onclick="setLanguage('en')">EN</button>
             <button class="lang-btn" onclick="setLanguage('et')">ET</button>
@@ -57,14 +77,14 @@
 
     <div style="margin-bottom: 15px;">
         <p><b id="txt-themes">Themes:</b></p>
-        <button class="nav-btn" onclick="setTheme('neon')">Neon</button>
-        <button class="nav-btn" onclick="setTheme('matrix')">Matrix</button>
+        <button class="nav-btn" onclick="setTheme('neon')">Neon Red</button>
+        <button class="nav-btn" onclick="setTheme('matrix')">Matrix Green</button>
     </div>
 
     <p><b id="txt-history">History:</b></p>
-    <div id="history-list" style="font-size: 9px; color: #aaa; max-height: 100px; overflow-y: auto;"></div>
+    <div id="history-list" style="font-size: 9px; color: #aaa; max-height: 100px; overflow-y: auto; background: #000; padding: 5px; border-radius: 4px;"></div>
     <br>
-    <button class="nav-btn" id="txt-inspect" onclick="getCurrentWebview()?.openDevTools()">Inspect</button>
+    <button class="nav-btn" id="txt-inspect" onclick="getCurrentWebview()?.openDevTools()">Inspect Element</button>
 </div>
 
 <div id="browser-ui">
@@ -72,53 +92,57 @@
         <div id="tabs-container" style="display: flex; gap: 5px;"></div>
         <button class="nav-btn" onclick="createNewTab()">+</button>
     </div>
+    
     <div id="nav-bar">
         <button class="nav-btn" onclick="getCurrentWebview()?.goBack()">←</button>
+        <button class="nav-btn" onclick="getCurrentWebview()?.goForward()">→</button>
         <button class="nav-btn" onclick="getCurrentWebview()?.reload()">↻</button>
-        <input type="text" id="url-input" onkeypress="handleUrl(event)">
+        
+        <input type="text" id="url-input" onkeypress="handleUrl(event)" placeholder="Search or enter URL...">
+        
         <button class="nav-btn" onclick="addCurrentAsBookmark()">⭐</button>
-        <div onclick="toggleMenu()" style="cursor:pointer; font-size: 24px; padding: 0 5px;">☰</div>
+        <div onclick="toggleMenu()" style="cursor:pointer; font-size: 24px; padding: 0 5px; color: var(--accent);">☰</div>
     </div>
-    <div id="bookmarks-bar" style="background:#111; padding:5px 15px; font-size:11px; border-bottom:1px solid #222;">
-        <div id="bookmarks-container" style="display:flex; gap:15px;"></div>
+
+    <div id="bookmarks-bar" style="background:#0a0a0a; padding:5px 15px; font-size:11px; border-bottom:1px solid #222;">
+        <div id="bookmarks-container" style="display:flex; gap:15px; color: var(--text);"></div>
     </div>
+    
     <div id="content-area"></div>
 </div>
 
 <script>
-    const path = require('path');
-    
-    const i18n = {
-        fi: { settings: "ASETUKSET", lang: "Kieli", themes: "Teemat", history: "Historia", inspect: "Tarkasta", placeholder: "Hae..." },
-        en: { settings: "SETTINGS", lang: "Language", themes: "Themes", history: "History", inspect: "Inspect", placeholder: "Search..." },
-        et: { settings: "SEADED", lang: "Keel", themes: "Teemad", history: "Ajalugu", inspect: "Inspekteeri", placeholder: "Otsi..." },
-        zh: { settings: "设置", lang: "语言", themes: "主题", history: "历史", inspect: "检查", placeholder: "搜索..." },
-        ru: { settings: "НАСТРОЙКИ", lang: "Язык", themes: "Темы", history: "История", inspect: "Осмотреть", placeholder: "Поиск..." },
-        uk: { settings: "НАЛАШТУВАННЯ", lang: "Мова", themes: "Теми", history: "Історія", inspect: "Перевірити", placeholder: "Пошук..." },
-        de: { settings: "EINSTELLUNGEN", lang: "Sprache", themes: "Themen", history: "Verlauf", inspect: "Untersuchen", placeholder: "Suche..." },
-        es: { settings: "AJUSTES", lang: "Idioma", themes: "Temas", history: "Historial", inspect: "Inspeccionar", placeholder: "Buscar..." },
-        ro: { settings: "SETĂRI", lang: "Limbă", themes: "Teme", history: "Istoric", inspect: "Inspectează", placeholder: "Caută..." },
-        sv: { settings: "INSTÄLLNINGAR", lang: "Språk", themes: "Teman", history: "Historik", inspect: "Inspektera", placeholder: "Sök..." },
-        ja: { settings: "設定", lang: "言語", themes: "テーマ", history: "歴史", inspect: "検査する", placeholder: "検索..." }
+    // i18n Kielituki
+const i18n = {
+    fi: { settings: "ASETUKSET", lang: "Kieli", themes: "Teemat", history: "Historia", inspect: "Tarkasta", placeholder: "Hae tai kirjoita osoite..." },
+    en: { settings: "SETTINGS", lang: "Language", themes: "Themes", history: "History", inspect: "Inspect", placeholder: "Search or enter URL..." },
+    et: { settings: "SEADED", lang: "Keel", themes: "Teemad", history: "Ajalugu", inspect: "Inspekteeri", placeholder: "Otsi..." },
+    zh: { settings: "设置", lang: "语言", themes: "主题", history: "历史", inspect: "检查", placeholder: "搜索..." },
+    ru: { settings: "НАСТРОЙКИ", lang: "Язык", themes: "Темы", history: "История", inspect: "Осмотреть", placeholder: "Поиск..." },
+    uk: { settings: "НАЛАШТУВАННЯ", lang: "Мова", themes: "Теми", history: "Історія", inspect: "Перевірити", placeholder: "Пошук..." },
+    de: { settings: "EINSTELLUNGEN", lang: "Sprache", themes: "Themen", history: "Verlauf", inspect: "Untersuchen", placeholder: "Suche..." },
+    es: { settings: "AJUSTES", lang: "Idioma", themes: "Temas", history: "Historial", inspect: "Inspeccionar", placeholder: "Buscar..." },
+    ro: { settings: "SETĂRI", lang: "Limbă", themes: "Teme", history: "Istoric", inspect: "Inspectează", placeholder: "Caută..." },
+    sv: { settings: "INSTÄLLNINGAR", lang: "Språk", themes: "Teman", history: "Historik", inspect: "Inspektera", placeholder: "Sök..." },
+    ja: { settings: "設定", lang: "言語", themes: "テーマ", history: "歴史", inspect: "検査する", placeholder: "検索..." }
+};
     };
 
+    let tabCount = 0;
     let history = JSON.parse(localStorage.getItem('fisb_history')) || [];
-    let bookmarks = JSON.parse(localStorage.getItem('fisb_bookmarks')) || [{ name: 'GitHub', url: 'https://github.com/KingdomOfFinland' }];
+    let bookmarks = JSON.parse(localStorage.getItem('fisb_bookmarks')) || [{ name: 'GitHub', url: 'https://github.com' }];
 
-    // AUTOPICK LANGUAGE PER LOCATION
+    // AUTODETECT LOCATION & LANG
     async function autoDetectLanguage() {
         try {
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
-            const countryCode = data.country_code.toLowerCase();
             document.getElementById('location-status').innerText = `Location: ${data.city}, ${data.country_name}`;
-            
-            const map = { fi:'fi', ee:'et', cn:'zh', ru:'ru', ua:'uk', de:'de', es:'es', ro:'ro', se:'sv', ja:'ja' };
+            const countryCode = data.country_code.toLowerCase();
+            const map = { fi:'fi', ee:'et', ru:'ru' };
             const detected = map[countryCode] || 'en';
             if(!localStorage.getItem('fisb_lang')) setLanguage(detected);
-        } catch(e) {
-            setLanguage(localStorage.getItem('fisb_lang') || 'en');
-        }
+        } catch(e) { setLanguage(localStorage.getItem('fisb_lang') || 'en'); }
     }
 
     function setLanguage(lang) {
@@ -130,55 +154,6 @@
         document.getElementById('txt-history').innerText = i18n[lang].history + ":";
         document.getElementById('txt-inspect').innerText = i18n[lang].inspect;
         document.getElementById('url-input').placeholder = i18n[lang].placeholder;
-        
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.innerText.toLowerCase() === lang);
-        });
-    }
-
-    // TÄMÄ ON TÄRKEÄ: Ladataan fisb.html oikein
-    function loadInActive(url) {
-        const wv = getCurrentWebview();
-        if (url === "fisb.html") {
-            wv.src = `file://${path.join(__dirname, 'fisb.html')}`;
-        } else {
-            wv.src = url.startsWith('http') ? url : 'https://' + url;
-        }
-    }
-
-    function createNewTab(url = "fisb.html") {
-        const id = 'tab-' + (++tabCount);
-        const tab = document.createElement('div');
-        tab.className = 'tab'; tab.id = 'btn-' + id;
-        tab.innerHTML = `Tab ${tabCount} <span onclick="event.stopPropagation(); closeTab('${id}')">×</span>`;
-        tab.onclick = () => switchTab(id);
-        document.getElementById('tabs-container').appendChild(tab);
-
-        const wv = document.createElement('webview');
-        wv.id = id;
-        wv.setAttribute('useragent', "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
-        wv.setAttribute('webpreferences', 'contextIsolation=no, nodeIntegration=yes');
-        document.getElementById('content-area').appendChild(wv);
-        
-        wv.addEventListener('did-navigate', (e) => {
-            if(!e.url.includes('fisb.html')) {
-                history.push({url: e.url, time: Date.now()});
-                const limit = Date.now() - (30 * 24 * 60 * 60 * 1000);
-                history = history.filter(h => h.time > limit);
-                localStorage.setItem('fisb_history', JSON.stringify(history));
-            }
-            if (wv.classList.contains('active')) document.getElementById('url-input').value = e.url.includes('fisb.html') ? '' : e.url;
-        });
-
-        switchTab(id);
-        loadInActive(url);
-    }
-
-    function toggleMenu() {
-        const menu = document.getElementById('side-menu');
-        menu.classList.toggle('open');
-        document.getElementById('overlay').style.display = menu.classList.contains('open') ? 'block' : 'none';
-        document.getElementById('history-list').innerHTML = history.slice(-10).reverse().map(h => `<div style="margin-bottom:2px">${h.url}</div>`).join('');
     }
 
     function setTheme(t) {
@@ -187,52 +162,93 @@
         if(t === 'matrix') { r.style.setProperty('--accent', '#00ff00'); r.style.setProperty('--text', '#00ff00'); }
     }
 
+    function createNewTab(url = "https://www.google.com") {
+        const id = 'tab-' + (++tabCount);
+        const tab = document.createElement('div');
+        tab.className = 'tab'; tab.id = 'btn-' + id;
+        tab.innerHTML = `Tab ${tabCount} <span style="margin-left:8px;" onclick="event.stopPropagation(); closeTab('${id}')">×</span>`;
+        tab.onclick = () => switchTab(id);
+        document.getElementById('tabs-container').appendChild(tab);
+
+        const wv = document.createElement('webview');
+        wv.id = id;
+        wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        wv.setAttribute('webpreferences', 'contextIsolation=no, nodeIntegration=yes');
+        document.getElementById('content-area').appendChild(wv);
+        
+        wv.addEventListener('did-navigate', (e) => {
+            history.push({url: e.url, time: Date.now()});
+            localStorage.setItem('fisb_history', JSON.stringify(history.slice(-50)));
+            if (wv.classList.contains('active')) document.getElementById('url-input').value = e.url;
+        });
+
+        switchTab(id);
+        wv.src = url;
+    }
+
+    function switchTab(id) {
+        document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+        document.getElementById('url-input').value = document.getElementById(id).getURL() || "";
+    }
+
+    function closeTab(id) {
+        document.getElementById(id).remove();
+        document.getElementById('btn-' + id).remove();
+        if(!getCurrentWebview()) createNewTab();
+        else switchTab(document.querySelector('webview').id);
+    }
+
+    function getCurrentWebview() { return document.querySelector('webview.active'); }
+
     function handleUrl(e) {
         if (e.key === 'Enter') {
-            if (e.target.value.toLowerCase() === "toshiba satellite c660") { startToshibaRain(); e.target.value = ""; return; }
-            loadInActive(e.target.value);
+            let val = e.target.value;
+            if (val.toLowerCase() === "toshiba satellite c660") { startToshibaRain(); e.target.value = ""; return; }
+            if (!val.startsWith('http')) val = 'https://' + val;
+            getCurrentWebview().src = val;
         }
     }
 
+    function toggleMenu() {
+        const menu = document.getElementById('side-menu');
+        menu.classList.toggle('open');
+        document.getElementById('overlay').style.display = menu.classList.contains('open') ? 'block' : 'none';
+        document.getElementById('history-list').innerHTML = history.slice(-10).reverse().map(h => `<div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${h.url}</div>`).join('');
+    }
+
     function startToshibaRain() {
-        for(let i=0; i<20; i++) {
+        for(let i=0; i<15; i++) {
             setTimeout(() => {
                 const img = document.createElement('img');
-                img.src = "https://www.toshiba.eu/images/toshiba-satellite-c660-1.png";
+                img.src = "https://www.toshiba.eu/images/toshiba-satellite-c660-1.png"; // Varmista että linkki toimii tai käytä paikallista kuvaa
                 img.className = 'falling-toshiba';
                 img.style.left = Math.random() * 90 + "vw";
                 img.style.animationDuration = (Math.random() * 2 + 1) + "s";
                 document.body.appendChild(img);
                 setTimeout(() => img.remove(), 3000);
-            }, i * 150);
+            }, i * 200);
         }
     }
 
     function addCurrentAsBookmark() {
         const url = getCurrentWebview().getURL();
-        bookmarks.push({ name: url.split('/')[2] || 'Link', url });
-        updateBookmarksUI();
+        if(url) {
+            bookmarks.push({ name: url.split('/')[2] || 'New Link', url });
+            updateBookmarksUI();
+        }
     }
 
     function updateBookmarksUI() {
-        document.getElementById('bookmarks-container').innerHTML = bookmarks.map(b => `<span style="cursor:pointer;color:#0f0;" onclick="loadInActive('${b.url}')">${b.name}</span>`).join('');
+        document.getElementById('bookmarks-container').innerHTML = bookmarks.map(b => `<span style="cursor:pointer;color:var(--accent);" onclick="getCurrentWebview().src='${b.url}'">${b.name}</span>`).join('');
         localStorage.setItem('fisb_bookmarks', JSON.stringify(bookmarks));
     }
 
-    let tabCount = 0;
-    function switchTab(id) {
-        document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.getElementById('btn-' + id).classList.add('active');
-    }
-    function getCurrentWebview() { return document.querySelector('webview.active'); }
-    function closeTab(id) { document.getElementById(id).remove(); document.getElementById('btn-' + id).remove(); if(!getCurrentWebview()) createNewTab(); }
-
     window.onload = () => { 
         autoDetectLanguage(); 
-        setLanguage(localStorage.getItem('fisb_lang') || 'en');
         createNewTab(); 
-        updateBookmarksUI(); 
+        updateBookmarksUI();
     };
 </script>
 </body>
