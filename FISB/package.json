@@ -1,13 +1,20 @@
 {
-  "name": "fisb",
-  "version": "1.0.0",
-  "description": "",
+  "name": "fisb-bluefin",
+  "version": "1.1.0",
+  "description": "Fish Browser v1.1 Bluefin - Absolute AdBlock & C660-15v Edition",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "electron-packager . FishBrowser --platform=win32 --arch=x64 --out=release-builds"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "browser",
+    "electron",
+    "adblock",
+    "toshiba"
+  ],
+  "author": "FISB Dev",
   "license": "ISC",
   "devDependencies": {
     "electron": "^41.0.3"
