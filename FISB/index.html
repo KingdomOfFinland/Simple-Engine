@@ -163,10 +163,27 @@ function setTheme(t) {
 function createNewTab(url = "https://www.google.com") {
     const id = 'tab-' + (++tabCount);
     const tab = document.createElement('div');
-    tab.className = 'tab'; tab.id = 'btn-' + id;
-    tab.innerHTML = `Tab ${tabCount} <span style="margin-left:8px;" onclick="event.stopPropagation(); closeTab('${id}')">×</span>`;
+    tab.className = 'tab'; 
+    tab.id = 'btn-' + id;
+    
+    // TÄRKEÄ: onclick-suljin käyttää event.stopPropagation()
+    tab.innerHTML = `
+        <span>Tab ${tabCount}</span>
+        <span class="close-btn" style="margin-left:8px; cursor:pointer;" 
+              onclick="event.stopPropagation(); event.stopImmediatePropagation(); closeTab('${id}')">×</span>
+    `;
+    
     tab.onclick = () => switchTab(id);
     document.getElementById('tabs-container').appendChild(tab);
+
+    const wv = document.createElement('webview');
+    wv.id = id;
+    // ... muut webview-asetukset (useragent, jne.) ...
+    document.getElementById('content-area').appendChild(wv);
+
+    switchTab(id);
+    wv.src = url;
+}
 
     const wv = document.createElement('webview');
     wv.id = id;
@@ -212,10 +229,26 @@ function switchTab(id) {
 }
 
 function closeTab(id) {
-    document.getElementById(id).remove();
-    document.getElementById('btn-' + id).remove();
-    if(!getCurrentWebview()) createNewTab();
-    else switchTab(document.querySelector('webview').id);
+    const tabBtn = document.getElementById('btn-' + id);
+    const webview = document.getElementById(id);
+
+    // Jos molemmat löytyvät, poistetaan ne
+    if (tabBtn) tabBtn.remove();
+    if (webview) webview.remove();
+
+    // Etsitään kaikki jäljellä olevat välilehdet
+    const remainingTabs = document.querySelectorAll('.tab');
+
+    if (remainingTabs.length > 0) {
+        // Jos poistettu välilehti oli aktiivinen, vaihdetaan viimeisimpään jäljellä olevaan
+        const lastTab = remainingTabs[remainingTabs.length - 1];
+        const lastTabId = lastTab.id.replace('btn-', '');
+        switchTab(lastTabId);
+    } else {
+        // Jos kaikki välilehdet on suljettu, luodaan vain YKSI uusi
+        tabCount = 0; // Nollataan laskuri jos haluat
+        createNewTab();
+    }
 }
 
 function getCurrentWebview() { return document.querySelector('webview.active'); }
