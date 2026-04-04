@@ -2,118 +2,84 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <title>Fish Browser v1.1.5 | Ultimate Global</title>
-    <style id="theme-style">
-        /* 1. KAIKKI FONTIT JA DARK MODE PERUS-ASETUKSET */
-        :root { 
-            --main-bg: #000; 
-            --ui-bg: #111; 
-            --accent: #ff4444; 
-            --text: #00ff00; 
-            --webview-bg: #ffffff;
-        }
-
-        body, html { 
-            margin: 0; padding: 0; height: 100%; 
-            background: var(--main-bg); 
-            /* Kaikki fontit: Segoe UI (Win7), MS Gothic (JA), SimSun (ZH) */
-            font-family: 'Segoe UI', 'MS Gothic', 'SimSun', Tahoma, Geneva, Verdana, sans-serif; 
-            overflow: hidden; color: white; 
-        }
-
-        #browser-ui { display: flex; flex-direction: column; height: 100%; position: relative; z-index: 2; }
-        
-        /* 2. TABS & NAV BAR (DARK MODE STYLE) */
+    <title>Fish Browser v1.1.5 | Bluefin Ultimate</title>
+    <style>
+        :root { --main-bg: #000b1e; --ui-bg: #001535; --accent: #0088ff; --text: #00d9ff; }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--main-bg); font-family: 'Segoe UI', sans-serif; overflow: hidden; color: white; }
+        #browser-ui { display: flex; flex-direction: column; height: 100%; position: relative; }
         #tabs-bar { display: flex; background: var(--ui-bg); padding: 5px; gap: 5px; border-bottom: 2px solid var(--accent); align-items: center; }
-        .tab { background: #222; color: #fff; padding: 6px 12px; border-radius: 5px 5px 0 0; cursor: pointer; min-width: 100px; font-size: 11px; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .tab { background: rgba(255,255,255,0.1); color: #fff; padding: 6px 12px; border-radius: 5px 5px 0 0; cursor: pointer; min-width: 120px; font-size: 11px; border: 1px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
         .tab.active { background: var(--accent); color: #000; font-weight: bold; }
-
-        #nav-bar { display: flex; background: #1a1a1a; padding: 8px 12px; gap: 10px; align-items: center; }
+        #nav-bar { display: flex; background: rgba(0,0,0,0.2); padding: 8px 12px; gap: 10px; align-items: center; }
         .nav-btn { background: #333; border: 1px solid #555; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: 0.2s; }
         .nav-btn:hover { background: var(--accent); color: black; }
-        
-        input#url-input { flex-grow: 1; background: #000; border: 1px solid #444; color: var(--text); padding: 7px 15px; border-radius: 20px; outline: none; font-family: 'Consolas', monospace; }
-        
-        /* SIDE MENU (DARK SETTINGS) */
-        #side-menu { position: fixed; top: 0; right: -300px; width: 300px; height: 100%; background: #111; color: white; z-index: 1000; transition: 0.3s; border-left: 2px solid var(--accent); padding: 20px; box-sizing: border-box; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.5); }
+        input#url-input { flex-grow: 1; background: rgba(0,0,0,0.5); border: 1px solid var(--accent); color: var(--text); padding: 7px 15px; border-radius: 20px; outline: none; font-family: 'Consolas', monospace; }
+        #content-area { flex-grow: 1; position: relative; background: #fff; }
+        webview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
+        webview.active { display: flex !important; }
+        #side-menu { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background: var(--ui-bg); z-index: 1000; transition: 0.3s; border-left: 2px solid var(--accent); padding: 20px; box-sizing: border-box; overflow-y: auto; }
         #side-menu.open { right: 0; }
-        .lang-btn { background: #444; color: white; border: none; padding: 6px 10px; margin: 2px; cursor: pointer; border-radius: 3px; font-size: 11px; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 999; }
+        .lang-btn { background: #333; color: white; border: 1px solid #444; padding: 5px; margin: 2px; cursor: pointer; font-size: 10px; min-width: 45px; }
         .lang-btn.active { background: var(--accent); color: black; }
-
-        #content-area { flex-grow: 1; position: relative; background: var(--webview-bg); }
-        webview { width: 100%; height: 100%; display: none; }
-        webview.active { display: flex; }
-
-        /* EASTER EGG */
-        .falling-toshiba { position: fixed; top: -100px; z-index: 9999; width: 80px; pointer-events: none; animation: fall linear forwards; }
-        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
     </style>
 </head>
 <body>
-
-<div id="overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;z-index:999;" onclick="toggleMenu()"></div>
-
+<div id="overlay" onclick="toggleMenu()"></div>
 <div id="side-menu">
     <h3 id="txt-settings" style="color: var(--accent);">SETTINGS</h3>
-    <p id="location-status" style="font-size: 10px; color: #888;">Detecting location...</p>
-    
-    <div style="margin-bottom: 15px;">
-        <p><b id="txt-lang">Language:</b></p>
-        <div id="lang-container" style="display: flex; flex-wrap: wrap; gap: 4px;">
-            <button class="lang-btn" onclick="setLanguage('fi')">FI</button>
-            <button class="lang-btn" onclick="setLanguage('en')">EN</button>
-            <button class="lang-btn" onclick="setLanguage('et')">ET</button>
-            <button class="lang-btn" onclick="setLanguage('zh')">ZH</button>
-            <button class="lang-btn" onclick="setLanguage('ru')">RU</button>
-            <button class="lang-btn" onclick="setLanguage('uk')">UK</button>
-            <button class="lang-btn" onclick="setLanguage('de')">DE</button>
-            <button class="lang-btn" onclick="setLanguage('es')">ES</button>
-            <button class="lang-btn" onclick="setLanguage('ro')">RO</button>
-            <button class="lang-btn" onclick="setLanguage('sv')">SV</button>
-            <button class="lang-btn" onclick="setLanguage('ja')">JA</button>
-        </div>
+    <p id="location-status" style="font-size: 10px; color: #888;">Detecting...</p>
+    <p><b id="txt-lang">Language:</b></p>
+    <div id="lang-container" style="display: flex; flex-wrap: wrap; gap: 2px;">
+        <button class="lang-btn" onclick="setLanguage('fi')">FI</button>
+        <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="setLanguage('et')">ET</button>
+        <button class="lang-btn" onclick="setLanguage('zh')">ZH</button>
+        <button class="lang-btn" onclick="setLanguage('ru')">RU</button>
+        <button class="lang-btn" onclick="setLanguage('uk')">UK</button>
+        <button class="lang-btn" onclick="setLanguage('de')">DE</button>
+        <button class="lang-btn" onclick="setLanguage('es')">ES</button>
+        <button class="lang-btn" onclick="setLanguage('ro')">RO</button>
+        <button class="lang-btn" onclick="setLanguage('sv')">SV</button>
+        <button class="lang-btn" onclick="setLanguage('ja')">JA</button>
     </div>
-
-    <div style="margin-bottom: 15px;">
-        <p><b id="txt-themes">Themes:</b></p>
+    <p><b id="txt-themes">Themes:</b></p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+        <button class="nav-btn" onclick="setTheme('sea')">Sea Blue</button>
+        <button class="nav-btn" onclick="setTheme('tronic')">Tronic</button>
+        <button class="nav-btn" onclick="setTheme('bw')">B&W</button>
+        <button class="nav-btn" onclick="setTheme('grass')">Grass</button>
         <button class="nav-btn" onclick="setTheme('neon')">Neon Red</button>
-        <button class="nav-btn" onclick="setTheme('matrix')">Matrix Green</button>
+        <button class="nav-btn" onclick="setTheme('matrix')">Matrix</button>
     </div>
-
     <p><b id="txt-history">History:</b></p>
-    <div id="history-list" style="font-size: 9px; color: #aaa; max-height: 100px; overflow-y: auto; background: #000; padding: 5px; border-radius: 4px;"></div>
-    <br>
-    <button class="nav-btn" id="txt-inspect" onclick="getCurrentWebview()?.openDevTools()">Inspect Element</button>
+    <div id="history-list" style="font-size:10px; background:#000; padding:5px; height:100px; overflow-y:auto; color:#aaa;"></div>
+    <br><button class="nav-btn" style="width:100%" id="txt-inspect" onclick="getCurrentWebview()?.openDevTools()">Inspect</button>
 </div>
 
 <div id="browser-ui">
     <div id="tabs-bar">
-        <div id="tabs-container" style="display: flex; gap: 5px;"></div>
+        <div id="tabs-container" style="display:flex; gap:5px;"></div>
         <button class="nav-btn" onclick="createNewTab()">+</button>
     </div>
-    
     <div id="nav-bar">
         <button class="nav-btn" onclick="getCurrentWebview()?.goBack()">←</button>
         <button class="nav-btn" onclick="getCurrentWebview()?.goForward()">→</button>
         <button class="nav-btn" onclick="getCurrentWebview()?.reload()">↻</button>
-        
-        <input type="text" id="url-input" onkeypress="handleUrl(event)" placeholder="Search or enter URL...">
-        
+        <input type="text" id="url-input" onkeypress="handleUrl(event)">
         <button class="nav-btn" onclick="addCurrentAsBookmark()">⭐</button>
-        <div onclick="toggleMenu()" style="cursor:pointer; font-size: 24px; padding: 0 5px; color: var(--accent);">☰</div>
+        <div onclick="toggleMenu()" style="cursor:pointer; font-size: 24px; padding: 0 10px; color: var(--accent);">☰</div>
     </div>
-
-    <div id="bookmarks-bar" style="background:#0a0a0a; padding:5px 15px; font-size:11px; border-bottom:1px solid #222;">
+    <div id="bookmarks-bar" style="background:rgba(0,0,0,0.3); padding:5px; font-size:11px; display:flex; gap:15px; border-bottom:1px solid #222;">
         <div id="bookmarks-container" style="display:flex; gap:15px; color: var(--text);"></div>
     </div>
-    
     <div id="content-area"></div>
 </div>
 
 <script>
 const i18n = {
-    fi: { settings: "ASETUKSET", lang: "Kieli", themes: "Teemat", history: "Historia", inspect: "Tarkasta", placeholder: "Hae tai kirjoita osoite..." },
-    en: { settings: "SETTINGS", lang: "Language", themes: "Themes", history: "History", inspect: "Inspect", placeholder: "Search or enter URL..." },
+    fi: { settings: "ASETUKSET", lang: "Kieli", themes: "Teemat", history: "Historia", inspect: "Tarkasta", placeholder: "Hae..." },
+    en: { settings: "SETTINGS", lang: "Language", themes: "Themes", history: "History", inspect: "Inspect", placeholder: "Search..." },
     et: { settings: "SEADED", lang: "Keel", themes: "Teemad", history: "Ajalugu", inspect: "Inspekteeri", placeholder: "Otsi..." },
     zh: { settings: "设置", lang: "语言", themes: "主题", history: "历史", inspect: "检查", placeholder: "搜索..." },
     ru: { settings: "НАСТРОЙКИ", lang: "Язык", themes: "Темы", history: "История", inspect: "Осмотреть", placeholder: "Поиск..." },
@@ -126,120 +92,80 @@ const i18n = {
 };
 
 let tabCount = 0;
-let history = JSON.parse(localStorage.getItem('fisb_history')) || [];
+let historyData = JSON.parse(localStorage.getItem('fisb_history')) || [];
 let bookmarks = JSON.parse(localStorage.getItem('fisb_bookmarks')) || [{ name: 'GitHub', url: 'https://github.com' }];
 
-async function autoDetectLanguage() {
-    try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        document.getElementById('location-status').innerText = `Location: ${data.city}, ${data.country_name}`;
-        const map = { fi:'fi', ee:'et', ru:'ru', cn:'zh', jp:'ja', de:'de' };
-        const detected = map[data.country_code.toLowerCase()] || 'en';
-        if(!localStorage.getItem('fisb_lang')) setLanguage(detected);
-    } catch(e) { setLanguage(localStorage.getItem('fisb_lang') || 'en'); }
+function setTheme(t) {
+    const r = document.querySelector(':root');
+    localStorage.setItem('fisb_theme', t);
+    const themes = {
+        sea: { bg: '#000b1e', ui: '#001535', acc: '#0088ff', txt: '#00d9ff' },
+        tronic: { bg: '#ff6600', ui: '#ff8800', acc: '#00ccff', txt: '#00ccff' },
+        bw: { bg: '#000000', ui: '#111111', acc: '#ffffff', txt: '#ffffff' },
+        grass: { bg: '#3e2723', ui: '#4e342e', acc: '#4caf50', txt: '#8bc34a' },
+        neon: { bg: '#000', ui: '#111', acc: '#ff4444', txt: '#00ff00' },
+        matrix: { bg: '#000', ui: '#000', acc: '#00ff00', txt: '#00ff00' }
+    };
+    const sel = themes[t] || themes.sea;
+    r.style.setProperty('--main-bg', sel.bg);
+    r.style.setProperty('--ui-bg', sel.ui);
+    r.style.setProperty('--accent', sel.acc);
+    r.style.setProperty('--text', sel.txt);
 }
 
 function setLanguage(lang) {
     if(!i18n[lang]) lang = 'en';
     localStorage.setItem('fisb_lang', lang);
-    document.getElementById('txt-settings').innerText = i18n[lang].settings;
-    document.getElementById('txt-lang').innerText = i18n[lang].lang + ":";
-    document.getElementById('txt-themes').innerText = i18n[lang].themes + ":";
-    document.getElementById('txt-history').innerText = i18n[lang].history + ":";
-    document.getElementById('txt-inspect').innerText = i18n[lang].inspect;
-    document.getElementById('url-input').placeholder = i18n[lang].placeholder;
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.innerText.toLowerCase() === lang);
-    });
+    const t = i18n[lang];
+    const mapping = { 'txt-settings': t.settings, 'txt-lang': t.lang, 'txt-themes': t.themes, 'txt-history': t.history, 'txt-inspect': t.inspect };
+    for (let id in mapping) {
+        const el = document.getElementById(id);
+        if (el) el.innerText = id === 'txt-inspect' ? mapping[id] : mapping[id] + ":";
+    }
+    document.getElementById('url-input').placeholder = t.placeholder;
+    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.toggle('active', btn.innerText.toLowerCase() === lang));
 }
-
-function setTheme(t) {
-    const r = document.querySelector(':root');
-    if(t === 'neon') { r.style.setProperty('--accent', '#ff4444'); r.style.setProperty('--text', '#00ff00'); }
-    if(t === 'matrix') { r.style.setProperty('--accent', '#00ff00'); r.style.setProperty('--text', '#00ff00'); }
-}
-let tabCount = 0;
-
-let tabCount = 0;
-
-// 1. VARMISTETAAN ETTÄ ALOITUS ONNISTUU
-window.onload = () => {
-    console.log("FISB v1.1.5: Käynnistys...");
-    createNewTab("https://www.google.com"); // Luo se ensimmäinen välilehti!
-};
 
 function createNewTab(url = "https://www.google.com") {
     tabCount++;
     const id = 'wv-' + tabCount;
-    const tabId = 'btn-' + id;
-
-    // LUODAAN PAINIKE
     const tab = document.createElement('div');
-    tab.className = 'tab'; 
-    tab.id = tabId;
-    tab.innerHTML = `
-        <span>Tab ${tabCount}</span>
-        <span class="close-btn" style="margin-left:10px; cursor:pointer;" 
-              onclick="event.stopPropagation(); closeTab('${id}')">×</span>
-    `;
-    
+    tab.className = 'tab'; tab.id = 'btn-' + id;
+    tab.innerHTML = `<span>Tab ${tabCount}</span><span onclick="event.stopPropagation(); closeTab('${id}')" style="margin-left:10px; cursor:pointer;">×</span>`;
     tab.onclick = () => switchTab(id);
     document.getElementById('tabs-container').appendChild(tab);
 
-    // LUODAAN WEBVIEW
     const wv = document.createElement('webview');
     wv.id = id;
-    wv.className = 'tab-content'; // Varmista että CSS:ssä on .tab-content { display:none; }
     wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-    wv.setAttribute('webpreferences', 'contextIsolation=no, nodeIntegration=yes');
-    
+    wv.addEventListener('dom-ready', () => wv.insertCSS(`ytd-ad-slot-renderer, .ad-showing, #player-ads { display: none !important; }`));
+    wv.addEventListener('did-navigate', (e) => {
+        if(wv.classList.contains('active')) document.getElementById('url-input').value = e.url;
+        historyData.push({url: e.url});
+        localStorage.setItem('fisb_history', JSON.stringify(historyData.slice(-30)));
+    });
     document.getElementById('content-area').appendChild(wv);
-
-    // Aktivoi heti
-    setTimeout(() => {
-        switchTab(id);
-        wv.src = url;
-    }, 10); 
+    switchTab(id);
+    wv.src = url;
 }
 
 function switchTab(id) {
-    const allWebviews = document.querySelectorAll('webview');
-    const allTabs = document.querySelectorAll('.tab');
-
-    // Piilota kaikki
-    allWebviews.forEach(wv => wv.style.display = 'none');
-    allTabs.forEach(t => t.classList.remove('active'));
-
-    // Näytä valittu
-    const targetWv = document.getElementById(id);
-    const targetBtn = document.getElementById('btn-' + id);
-
-    if (targetWv && targetBtn) {
-        targetWv.style.display = 'flex'; // Tai 'block' riippuen CSS:stä
-        targetWv.style.width = '100%';
-        targetWv.style.height = '100%';
-        targetBtn.classList.add('active');
-        
-        try {
-            document.getElementById('url-input').value = targetWv.getURL() || "";
-        } catch(e) {}
-    }
+    document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
+    document.getElementById(id)?.classList.add('active');
+    document.getElementById('btn-' + id)?.classList.add('active');
 }
 
-function getCurrentWebview() { return document.querySelector('webview.active'); }
+function closeTab(id) {
+    document.getElementById('btn-' + id)?.remove();
+    document.getElementById(id)?.remove();
+    const rem = document.querySelectorAll('.tab');
+    if (rem.length > 0) switchTab(rem[rem.length-1].id.replace('btn-', ''));
+    else createNewTab();
+}
 
 function handleUrl(e) {
     if (e.key === 'Enter') {
-        let val = e.target.value.toLowerCase();
-        
-        // Nyt toimii molemmilla koodeilla!
-        if (val === "toshiba satellite c660" || val === "toshiba satellite c660-15v") { 
-            startToshibaRain(); 
-            e.target.value = ""; 
-            return; 
-        }
-        
+        let val = e.target.value;
         if (!val.startsWith('http')) val = 'https://' + val;
         getCurrentWebview().src = val;
     }
@@ -249,41 +175,28 @@ function toggleMenu() {
     const menu = document.getElementById('side-menu');
     menu.classList.toggle('open');
     document.getElementById('overlay').style.display = menu.classList.contains('open') ? 'block' : 'none';
-    document.getElementById('history-list').innerHTML = history.slice(-10).reverse().map(h => `<div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:2px;">${h.url}</div>`).join('');
-}
-
-function startToshibaRain() {
-    for(let i=0; i<15; i++) {
-        setTimeout(() => {
-            const img = document.createElement('img');
-            img.src = "https://www.toshiba.eu/images/toshiba-satellite-c660-1.png";
-            img.className = 'falling-toshiba';
-            img.style.left = Math.random() * 90 + "vw";
-            img.style.animationDuration = (Math.random() * 2 + 1) + "s";
-            document.body.appendChild(img);
-            setTimeout(() => img.remove(), 3000);
-        }, i * 200);
-    }
-}
-
-function addCurrentAsBookmark() {
-    const url = getCurrentWebview().getURL();
-    if(url) {
-        bookmarks.push({ name: url.split('/')[2] || 'Link', url });
-        updateBookmarksUI();
-    }
+    document.getElementById('history-list').innerHTML = historyData.slice(-15).reverse().map(h => `<div style="border-bottom:1px solid #333; padding:2px; white-space:nowrap; overflow:hidden; font-size:9px;">${h.url}</div>`).join('');
 }
 
 function updateBookmarksUI() {
-    document.getElementById('bookmarks-container').innerHTML = bookmarks.map(b => `<span style="cursor:pointer;color:var(--accent);" onclick="getCurrentWebview().src='${b.url}'">${b.name}</span>`).join('');
-    localStorage.setItem('fisb_bookmarks', JSON.stringify(bookmarks));
+    document.getElementById('bookmarks-container').innerHTML = bookmarks.map(b => `<span style="cursor:pointer; color:var(--accent);" onclick="getCurrentWebview().src='${b.url}'">${b.name}</span>`).join('');
 }
 
-window.onload = () => { 
-    autoDetectLanguage(); 
+function addCurrentAsBookmark() {
+    const url = getCurrentWebview()?.getURL();
+    if(url) { bookmarks.push({ name: url.split('/')[2], url: url }); updateBookmarksUI(); localStorage.setItem('fisb_bookmarks', JSON.stringify(bookmarks)); }
+}
+
+function getCurrentWebview() { return document.querySelector('webview.active'); }
+
+window.onload = () => {
+    setTheme(localStorage.getItem('fisb_theme') || 'sea');
     setLanguage(localStorage.getItem('fisb_lang') || 'en');
-    createNewTab(); 
+    fetch('https://ipwho.is/').then(r=>r.json()).then(d=>{
+        if(d.city) document.getElementById('location-status').innerText = `Location: ${d.city}, ${d.country_code}`;
+    }).catch(()=>{ document.getElementById('location-status').innerText = "Location: Manual"; });
     updateBookmarksUI();
+    if(document.querySelectorAll('webview').length === 0) createNewTab();
 };
 </script>
 </body>
