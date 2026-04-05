@@ -1,31 +1,3 @@
-// --- UUDET NÄPPÄINKOMENNOT (DevTools & View Source) ---
-
-// 1. Kuunnellaan komentoja itse selaimen UI-alueella
-window.addEventListener('keydown', (e) => {
-    handleGlobalKeys(e, getCurrentWebview());
-});
-
-function handleGlobalKeys(e, wv) {
-    if (!wv) return;
-
-    // F12 -> Avaa/Sulje Inspect Element
-    if (e.key === 'F12') {
-        if (wv.isDevToolsOpened()) wv.closeDevTools();
-        else wv.openDevTools();
-    }
-
-    // Ctrl + Shift + I -> Sama kuin F12
-    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-        wv.openDevTools();
-    }
-
-    // Ctrl + U -> View Source (Avaa uuden välilehden view-source: etuliitteellä)
-    if (e.ctrlKey && e.key === 'u' || e.ctrlKey && e.key === 'U') {
-        const currentUrl = wv.getURL();
-        if (currentUrl.startsWith('view-source:')) return; // Estetään looppi
-        createNewTab('view-source:' + currentUrl);
-    }
-}
 
 // --- PÄIVITETTY createNewTab (Lisätty webview-kohtaiset kuuntelijat) ---
 
