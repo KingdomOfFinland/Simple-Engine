@@ -96,47 +96,6 @@ let tabCount = 0;
 let activeTabId = null;
 let historyData = JSON.parse(localStorage.getItem('fisb_history')) || [];
 
-    // --- TÄMÄ KUULUU VAIN index.html TIEDOSTOON ---
-
-// 1. Yhteinen funktio näppäinkomennoille
-function handleGlobalKeys(e, wv) {
-    if (!wv) return;
-
-    // F12 -> Inspect Element
-    if (e.key === 'F12') {
-        if (wv.isDevToolsOpened()) wv.closeDevTools();
-        else wv.openDevTools();
-    }
-
-    // Ctrl + U -> View Source
-    if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
-        const currentUrl = wv.getURL();
-        if (!currentUrl.startsWith('view-source:')) {
-            createNewTab('view-source:' + currentUrl);
-        }
-    }
-}
-
-// 2. Kuunnellaan komentoja selaimen harmaalla alueella (UI)
-window.addEventListener('keydown', (e) => {
-    handleGlobalKeys(e, getCurrentWebview());
-});
-
-// 3. Päivitä createNewTab funktio lisäämällä tämä rivi webview-elementille:
-function createNewTab(url = "https://www.google.com") {
-    // ... (aiempi koodi välilehden luomiseen)
-    
-    const wv = document.createElement('webview');
-    // ... (asetukset)
-
-    // TÄMÄ ON TÄRKEÄ: Näppäimet toimivat myös nettisivun sisällä
-    wv.addEventListener('keydown', (e) => {
-        handleGlobalKeys(e, wv);
-    });
-
-    document.getElementById('content-area').appendChild(wv);
-    switchTab(tabCount);
-}
 
 const i18n = {
     fi: { settings: "ASETUKSET", lang: "Kieli", themes: "Teemat", history: "Historia", placeholder: "Hae..." },
@@ -263,6 +222,49 @@ window.onload = () => {
         if(d.city) document.getElementById('location-status').innerText = `Location: ${d.city}, ${d.country_code}`;
     }).catch(()=>{});
 };
+
+    // --- TÄMÄ KUULUU VAIN index.html TIEDOSTOON ---
+
+// 1. Yhteinen funktio näppäinkomennoille
+function handleGlobalKeys(e, wv) {
+    if (!wv) return;
+
+    // F12 -> Inspect Element
+    if (e.key === 'F12') {
+        if (wv.isDevToolsOpened()) wv.closeDevTools();
+        else wv.openDevTools();
+    }
+
+    // Ctrl + U -> View Source
+    if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
+        const currentUrl = wv.getURL();
+        if (!currentUrl.startsWith('view-source:')) {
+            createNewTab('view-source:' + currentUrl);
+        }
+    }
+}
+
+// 2. Kuunnellaan komentoja selaimen harmaalla alueella (UI)
+window.addEventListener('keydown', (e) => {
+    handleGlobalKeys(e, getCurrentWebview());
+});
+
+// 3. Päivitä createNewTab funktio lisäämällä tämä rivi webview-elementille:
+function createNewTab(url = "https://www.google.com") {
+    // ... (aiempi koodi välilehden luomiseen)
+    
+    const wv = document.createElement('webview');
+    // ... (asetukset)
+
+    // TÄMÄ ON TÄRKEÄ: Näppäimet toimivat myös nettisivun sisällä
+    wv.addEventListener('keydown', (e) => {
+        handleGlobalKeys(e, wv);
+    });
+
+    document.getElementById('content-area').appendChild(wv);
+    switchTab(tabCount);
+}
+    
 </script>
 </body>
 </html>
