@@ -1,109 +1,112 @@
-const { app, BrowserWindow, session } = require('electron');
-const path = require('path');
+// --- UUDET NÄPPÄINKOMENNOT (DevTools & View Source) ---
 
-// 🚀 Win7 & Low-End Performance Fixes
-// Nämä on pakollisia, jotta selain ei "kuole" heti käynnistyksessä
-app.disableHardwareAcceleration();
-app.commandLine.appendSwitch('disable-gpu');
-app.commandLine.appendSwitch('no-sandbox');
-app.commandLine.appendSwitch('disable-site-isolation-trials');
-app.commandLine.appendSwitch('ignore-certificate-errors'); // Ohittaa vanhat SSL-virheet
+// 1. Kuunnellaan komentoja itse selaimen UI-alueella
+window.addEventListener('keydown', (e) => {
+    handleGlobalKeys(e, getCurrentWebview());
+});
 
-// Sallii yhteydet sivuille, vaikka Win7 varmenteet olisivat vanhoja
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+function handleGlobalKeys(e, wv) {
+    if (!wv) return;
 
-function createWindow () {
-  const win = new BrowserWindow({
-    width: 1280, 
-    height: 800,
-    backgroundColor: '#000000',
-    title: "Fish Browser v1.1.5 | Bluefin Ultimate",
-    icon: path.join(__dirname, 'icon.ico'), // Varmista että sulla on icon.ico
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      webviewTag: true, 
-      webSecurity: false,
-      // Asetetaan moderni User Agent, jotta sivut eivät valita vanhasta selaimesta
-      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    // F12 -> Avaa/Sulje Inspect Element
+    if (e.key === 'F12') {
+        if (wv.isDevToolsOpened()) wv.closeDevTools();
+        else wv.openDevTools();
     }
-  });
 
-  // 🛡️ NUCLEAR ADBLOCK v3 (Enhanced)
-  const adBlockList = [
-    "*://*.doubleclick.net/*", "*://*.googleadservices.com/*",
-    "*://*.googlesyndication.com/*", "*://*/pagead/*",
-    "*://www.youtube.com/api/stats/ads*", "*://www.youtube.com/get_midroll_info*",
-    "*://*.moatads.com/*", "*://*.amazon-adsystem.com/*",
-    "*://googleads.g.doubleclick.net/*", "*://*.adnxs.com/*",
-    "*://*.ads-twitter.com/*", "*://*.quantserve.com/*",
-    "*://*.analytics.google.com/*", "*://*/*adsapi*"
-  ];
+    // Ctrl + Shift + I -> Sama kuin F12
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        wv.openDevTools();
+    }
 
-  session.defaultSession.webRequest.onBeforeRequest({ urls: adBlockList }, (details, callback) => {
-    callback({ cancel: true });
-  });
-
-  // 📥 LATAUKSET (Downloads Folder Fix)
-  session.defaultSession.on('will-download', (event, item, webContents) => {
-    const downloadPath = path.join(app.getPath('downloads'), item.getFilename());
-    item.setSavePath(downloadPath);
-
-    item.on('updated', (event, state) => {
-      if (state === 'progressing' && !item.isPaused()) {
-        process.stdout.write(`Ladataan: ${item.getReceivedBytes()} tavua \r`);
-      }
-    });
-
-    item.once('done', (event, state) => {
-      if (state === 'completed') {
-        console.log('\nValmis: ' + downloadPath);
-      } else {
-        console.log(`Lataus epäonnistui: ${state}`);
-      }
-    });
-  });
-
-  // Webview-tuki (Välilehdet)
-  win.webContents.on('will-attach-webview', (event, webPreferences, params) => {
-    webPreferences.nodeIntegration = true;
-    webPreferences.contextIsolation = false;
-    webPreferences.webviewTag = true;
-    webPreferences.webSecurity = false; // Sallii iframe-sisällöt helpommin
-  });
-
-  // Header & CSP Ohitus (Sallii kaikki sivut ja krossi-domainit)
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    let responseHeaders = details.responseHeaders;
-    
-    // Poistetaan estot, jotka estävät sivujen näyttämisen iframeissa/webvieweissä
-    delete responseHeaders['X-Frame-Options'];
-    delete responseHeaders['x-frame-options'];
-    delete responseHeaders['content-security-policy'];
-    delete responseHeaders['Content-Security-Policy'];
-
-    callback({ 
-      cancel: false, 
-      responseHeaders: { 
-        ...responseHeaders, 
-        'Access-Control-Allow-Origin': ['*'] 
-      } 
-    });
-  });
-
-  win.loadFile(path.join(__dirname, 'index.html'));
-  win.setMenuBarVisibility(false);
+    // Ctrl + U -> View Source (Avaa uuden välilehden view-source: etuliitteellä)
+    if (e.ctrlKey && e.key === 'u' || e.ctrlKey && e.key === 'U') {
+        const currentUrl = wv.getURL();
+        if (currentUrl.startsWith('view-source:')) return; // Estetään looppi
+        createNewTab('view-source:' + currentUrl);
+    }
 }
 
-// Käynnistys
-app.whenReady().then(() => {
-  createWindow();
-  
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
+// --- PÄIVITETTY createNewTab (Lisätty webview-kohtaiset kuuntelijat) ---
 
-app.on('window-all-closed', () => { 
-  if (process.platform !== 'darwin') app.quit(); 
-});
+function createNewTab(url = "https://www.google.com") {
+    tabCount++;
+    const id = tabCount;
+    const tab = document.createElement('div');
+    tab.className = 'tab';
+    tab.id = `btn-wv-${id}`;
+    tab.innerHTML = `<span class="tab-title" id="title-wv-${id}">Ladataan...</span><span class="close-btn" onclick="closeTab(event, ${id})">×</span>`;
+    tab.onclick = () => switchTab(id);
+    document.getElementById('tabs-container').appendChild(tab);
+
+    const wv = document.createElement('webview');
+    wv.id = `wv-${id}`;
+    wv.src = url;
+    wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    
+    // TÄRKEÄ: Sallitaan koodin haku view-sourcea varten
+    wv.setAttribute('nodeintegration', ''); 
+
+    // Päivitetään otsikko
+    wv.addEventListener('page-title-updated', (e) => {
+        const titleEl = document.getElementById(`title-wv-${id}`);
+        if(titleEl) titleEl.innerText = e.title.substring(0, 18);
+    });
+
+    // Päivitetään URL-palkki
+    wv.addEventListener('did-navigate', (e) => {
+        if (activeTabId === id) document.getElementById('url-input').value = e.url;
+        historyData.push({url: e.url});
+        localStorage.setItem('fisb_history', JSON.stringify(historyData.slice(-30)));
+    });
+
+    // 🚀 LISÄTTY: Kuunnellaan näppäimiä myös webview'n SISÄLLÄ
+    wv.addEventListener('keydown', (e) => {
+        handleGlobalKeys(e, wv);
+    });
+
+    document.getElementById('content-area').appendChild(wv);
+    switchTab(id);
+}
+
+// --- LOPUT FUNKTIOT (Samat kuin aiemmin) ---
+function switchTab(id) {
+    activeTabId = id;
+    document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
+    const currentWv = document.getElementById(`wv-${id}`);
+    const currentBtn = document.getElementById(`btn-wv-${id}`);
+    if (currentWv && currentBtn) {
+        currentWv.classList.add('active');
+        currentBtn.classList.add('active');
+        try { document.getElementById('url-input').value = currentWv.getURL(); } catch(err) {}
+    }
+}
+
+function closeTab(e, id) {
+    e.stopPropagation();
+    document.getElementById(`btn-wv-${id}`)?.remove();
+    document.getElementById(`wv-${id}`)?.remove();
+    const rem = document.querySelectorAll('.tab');
+    if (rem.length > 0) {
+        const lastId = rem[rem.length - 1].id.replace('btn-wv-', '');
+        switchTab(parseInt(lastId));
+    } else {
+        createNewTab();
+    }
+}
+
+function handleUrl(e) {
+    if (e.key === 'Enter') {
+        let val = e.target.value;
+        if (!val.includes('.') && !val.startsWith('http')) {
+            val = 'https://www.google.com/search?q=' + encodeURIComponent(val);
+        } else if (!val.startsWith('http')) {
+            val = 'https://' + val;
+        }
+        getCurrentWebview().src = val;
+    }
+}
+
+function getCurrentWebview() { return document.getElementById(`wv-${activeTabId}`); }
+
+// ... (toggleMenu, setTheme, setLanguage pysyvät samoina)
