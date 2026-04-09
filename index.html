@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISB v0.3.1</title>
+    <title>Fish Engine | FISB v0.3.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
@@ -172,6 +172,42 @@
             if(localStorage.getItem('f_pfp')) { document.getElementById('main-pfp').src = localStorage.getItem('f_pfp'); document.getElementById('nav-pfp').src = localStorage.getItem('f_pfp'); }
         };
         document.getElementById('theme-toggle').onclick = () => { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); };
+        
+        (function() {
+    const now = new Date();
+    // month is 0-indexed (3 = April), day is 1-indexed
+    const isAprilFools = (now.getMonth() === 3 && now.getDate() === 1);
+
+    const translations = {
+        'https://youtube.com': { normal: 'YouTube', prank: 'YouToob' },
+        'https://tiktok.com': { normal: 'TikTok', prank: 'TicTack' },
+        'https://kick.com': { normal: 'Kick', prank: 'Punch' },
+        'https://twitch.tv': { normal: 'Twitch', prank: 'Twist' },
+        'https://instagram.com': { normal: 'Instagram', prank: 'gram' },
+        'https://discord.com': { normal: 'Discord', prank: 'Fihcord' },
+        'https://github.com/KingdomOfFinland': { normal: 'GitHub', prank: 'GitHub' },
+        'https://simplecellsoftware.com/caustic3.html': { normal: 'Caustic 3', prank: 'Plastic 3' },
+        'https://microsoft.com': { normal: 'Microsoft', prank: 'Michaelsoft' }
+    };
+
+    document.querySelectorAll('.s-btn').forEach(button => {
+        // Find the URL inside the onclick attribute
+        const match = button.getAttribute('onclick').match(/'([^']+)'/);
+        if (match && translations[match[1]]) {
+            const urlData = translations[match[1]];
+            button.textContent = isAprilFools ? urlData.prank : urlData.normal;
+            
+            // Handle the specific background color for Plastic 3
+            if (urlData.prank === 'Plastic 3') {
+                button.style.background = isAprilFools ? 'var(--accent)' : '';
+            }
+        }
+    });
+})();
+
+function openS(url) {
+    window.open(url, '_blank');
+}
     </script>
 </body>
 </html>
