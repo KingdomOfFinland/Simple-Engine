@@ -2,7 +2,7 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <title>Fish Browser v1.1.5 | Bluefin Ultimate</title>
+    <title>Fish Browser v1.4.5 | Bluefin Ultimate</title>
     <style>
         :root { --main-bg: #000b1e; --ui-bg: #001535; --accent: #0088ff; --text: #00d9ff; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--main-bg); font-family: 'Segoe UI', sans-serif; overflow: hidden; color: white; }
@@ -19,11 +19,21 @@
         #nav-bar { display: flex; background: rgba(0,0,0,0.2); padding: 8px 12px; gap: 10px; align-items: center; }
         .nav-btn { background: #333; border: 1px solid #555; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
         .nav-btn:hover { background: var(--accent); color: black; }
-        input#url-input { flex-grow: 1; background: rgba(0,0,0,0.5); border: 1px solid var(--accent); color: var(--text); padding: 7px 15px; border-radius: 20px; outline: none; font-family: 'Consolas', monospace; }
+        input#url-input { 
+    flex-grow: 1; 
+    background: rgba(0,0,0,0.5); 
+    border: 1px solid var(--accent); 
+    color: var(--text); 
+    padding: 7px 15px; 
+    border-radius: 20px; 
+    outline: none; 
+    font-family: 'Consolas', monospace; 
+}
         
         #content-area { flex-grow: 1; position: relative; background: #000; }
         webview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
         webview.active { display: flex !important; }
+        
 
         #side-menu { position: fixed; top: 0; right: -320px; width: 310px; height: 100%; background: var(--ui-bg); z-index: 1000; transition: 0.3s; border-left: 2px solid var(--accent); padding: 20px; box-sizing: border-box; overflow-y: auto; }
         #side-menu.open { right: 0; }
@@ -86,9 +96,18 @@
         <input type="text" id="url-input" onkeypress="handleUrl(event)">
         <button class="nav-btn" onclick="addCurrentAsBookmark()">⭐</button>
         <div onclick="toggleMenu()" style="cursor:pointer; font-size: 24px; padding: 0 10px; color: var(--accent);">☰</div>
+        <div id="bookmarks-bar" style="display: flex; background: rgba(255,255,255,0.05); padding: 5px 12px; gap: 10px; border-bottom: 1px solid #333; font-size: 12px;">
+    <span style="color: #666; margin-right: 5px;">⭐</span>
+    <div id="bookmarks-list" style="display: flex; gap: 15px;">
+        </div>
+</div>
     </div>
 
     <div id="content-area"></div>
+    <div id="status-bar" style="background: var(--ui-bg); font-size: 11px; padding: 4px 15px; border-top: 1px solid var(--accent); color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+        <div id="mem-status">RAM: Ladataan...</div>
+        <div>Bluefin v1.4.5 | Ultimate Edition</div>
+    </div>
 </div>
 
 <script>
@@ -96,14 +115,13 @@ let tabCount = 0;
 let activeTabId = null;
 let historyData = JSON.parse(localStorage.getItem('fisb_history')) || [];
 
-
 const i18n = {
     fi: { settings: "ASETUKSET", lang: "Kieli", themes: "Teemat", history: "Historia", placeholder: "Hae..." },
     en: { settings: "SETTINGS", lang: "Language", themes: "Themes", history: "History", placeholder: "Search..." },
     et: { settings: "SEADED", lang: "Keel", themes: "Teemad", history: "Ajalugu", placeholder: "Otsi..." },
     zh: { settings: "设置", lang: "语言", themes: "主题", history: "历史", placeholder: "搜索..." },
-    ru: { settings: "НАСТРОЙКИ", lang: "Язык", themes: "Темы", history: "История", placeholder: "Поиск..." },
-    uk: { settings: "НАЛАШТУВАННЯ", lang: "Мова", themes: "Теми", history: "Історія", placeholder: "Пошук..." },
+    ru: { settings: "НАСТРОЙКИ", lang: "Язык", themes: "Темы", history: "Historia", placeholder: "Поиск..." },
+    uk: { settings: "НАЛАШTUВАННЯ", lang: "Мова", themes: "Теми", history: "Istoriya", placeholder: "Poshuk..." },
     de: { settings: "EINSTELLUNGEN", lang: "Sprache", themes: "Themen", history: "Verlauf", placeholder: "Suche..." },
     es: { settings: "AJUSTES", lang: "Idioma", themes: "Temas", history: "Historial", placeholder: "Buscar..." },
     ro: { settings: "SETĂRI", lang: "Limbă", themes: "Teme", history: "Istoric", placeholder: "Caută..." },
@@ -111,6 +129,7 @@ const i18n = {
     ja: { settings: "設定", lang: "言語", themes: "テーマ", history: "歴史", placeholder: "検索..." }
 };
 
+// YHDISTETTY JA KORJATTU TABIN LUONTI
 function createNewTab(url = "https://www.google.com") {
     tabCount++;
     const id = tabCount;
@@ -125,7 +144,8 @@ function createNewTab(url = "https://www.google.com") {
     wv.id = `wv-${id}`;
     wv.src = url;
     wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-    
+    wv.setAttribute('allowpopups', ''); // Sallii pop-upit
+
     wv.addEventListener('page-title-updated', (e) => {
         const titleEl = document.getElementById(`title-wv-${id}`);
         if(titleEl) titleEl.innerText = e.title.substring(0, 18);
@@ -137,8 +157,30 @@ function createNewTab(url = "https://www.google.com") {
         localStorage.setItem('fisb_history', JSON.stringify(historyData.slice(-30)));
     });
 
+    // 🌙 Dark Mode & Näppäimet webviewin sisällä
+    wv.addEventListener('did-finish-load', () => {
+        wv.insertCSS(`
+            html, body { background-color: #121212 !important; color: #e0e0e0 !important; }
+            img, video { filter: brightness(.8) contrast(1.2); }
+            * { border-color: #333 !important; }
+        `);
+    });
+
+    wv.addEventListener('keydown', (e) => {
+        handleGlobalKeys(e, wv);
+    });
+
     document.getElementById('content-area').appendChild(wv);
     switchTab(id);
+
+    // Focus osoitepalkkiin automaattisesti
+    setTimeout(() => {
+        const urlInput = document.getElementById('url-input');
+        if(urlInput) {
+            urlInput.focus();
+            urlInput.select();
+        }
+    }, 100);
 }
 
 function switchTab(id) {
@@ -212,30 +254,12 @@ function setLanguage(lang) {
     localStorage.setItem('fisb_lang', lang);
 }
 
-function addCurrentAsBookmark() { /* Logic simplified for stability */ }
-
-window.onload = () => {
-    setTheme(localStorage.getItem('fisb_theme') || 'sea');
-    setLanguage(localStorage.getItem('fisb_lang') || 'fi');
-    createNewTab();
-    fetch('https://ipwho.is/').then(r=>r.json()).then(d=>{
-        if(d.city) document.getElementById('location-status').innerText = `Location: ${d.city}, ${d.country_code}`;
-    }).catch(()=>{});
-};
-
-    // --- TÄMÄ KUULUU VAIN index.html TIEDOSTOON ---
-
-// 1. Yhteinen funktio näppäinkomennoille
 function handleGlobalKeys(e, wv) {
     if (!wv) return;
-
-    // F12 -> Inspect Element
     if (e.key === 'F12') {
         if (wv.isDevToolsOpened()) wv.closeDevTools();
         else wv.openDevTools();
     }
-
-    // Ctrl + U -> View Source
     if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
         const currentUrl = wv.getURL();
         if (!currentUrl.startsWith('view-source:')) {
@@ -244,27 +268,54 @@ function handleGlobalKeys(e, wv) {
     }
 }
 
-// 2. Kuunnellaan komentoja selaimen harmaalla alueella (UI)
 window.addEventListener('keydown', (e) => {
     handleGlobalKeys(e, getCurrentWebview());
 });
 
-// 3. Päivitä createNewTab funktio lisäämällä tämä rivi webview-elementille:
-function createNewTab(url = "https://www.google.com") {
-    // ... (aiempi koodi välilehden luomiseen)
-    
-    const wv = document.createElement('webview');
-    // ... (asetukset)
+let bookmarks = JSON.parse(localStorage.getItem('fisb_bookmarks')) || [];
 
-    // TÄMÄ ON TÄRKEÄ: Näppäimet toimivat myös nettisivun sisällä
-    wv.addEventListener('keydown', (e) => {
-        handleGlobalKeys(e, wv);
-    });
-
-    document.getElementById('content-area').appendChild(wv);
-    switchTab(tabCount);
+function addCurrentAsBookmark() {
+    const wv = getCurrentWebview();
+    const url = wv.getURL();
+    const title = document.getElementById(`title-wv-${activeTabId}`).innerText;
+    if (!bookmarks.find(b => b.url === url)) {
+        bookmarks.push({ title, url });
+        localStorage.setItem('fisb_bookmarks', JSON.stringify(bookmarks));
+        renderBookmarks();
+    }
 }
+
+function renderBookmarks() {
+    const list = document.getElementById('bookmarks-list');
+    list.innerHTML = bookmarks.map(b => `
+        <span class="bookmark" onclick="getCurrentWebview().src='${b.url}'" style="cursor:pointer; color: var(--text); margin-right:10px;">
+            ${b.title.substring(0, 15)}
+        </span>
+    `).join('');
+}
+
+// RAM-MITTARI LOGIIKKA
+setInterval(() => {
+    if (typeof process !== 'undefined' && process.getProcessMemoryInfo) {
+        process.getProcessMemoryInfo().then(info => {
+            const mb = (info.private / 1024).toFixed(1);
+            const statusEl = document.getElementById('mem-status');
+            if (statusEl) statusEl.innerText = `RAM Käyttö: ${mb} MB`;
+        }).catch(() => {});
+    }
+}, 5000);
+
+// ALUSTUS KUN IKKUNA AUKEAA
+window.onload = () => {
+    setTheme(localStorage.getItem('fisb_theme') || 'sea');
+    setLanguage(localStorage.getItem('fisb_lang') || 'fi');
+    renderBookmarks();
+    createNewTab(); // Tämä avaa sen ensimmäisen välilehden!
     
+    fetch('https://ipwho.is/').then(r=>r.json()).then(d=>{
+        if(d.city) document.getElementById('location-status').innerText = `Location: ${d.city}, ${d.country_code}`;
+    }).catch(()=>{});
+};
 </script>
 </body>
 </html>
