@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISB v0.3.2</title>
+    <title>Fish Engine | FISB v0.3.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
@@ -49,7 +49,7 @@
     <div class="logo-area">
         <img id="main-pfp" src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
         <h1>Fish Engine</h1>
-        <p style="opacity: 0.6; font-size: 12px;">v0.3.1 | Valkeakoski Engineering</p>
+        <p style="opacity: 0.6; font-size: 12px;">v0.3.5 | Valkeakoski Engineering</p>
     </div>
 
     <div class="search-container">
@@ -65,14 +65,18 @@
             <button class="s-btn" onclick="openS('https://discord.com')">Discord</button>
             <button class="s-btn" onclick="openS('https://github.com/KingdomOfFinland')">GitHub</button>
             <button class="s-btn" style="background: var(--accent);" onclick="openS('https://singlecellsoftware.com/caustic3.html')">Caustic 3</button>
+            <button class="s-btn" onclick="openS('https://microsoft.com/')">Microsoft</button>
         </div>
 
-        <div class="grid-label">FISB Arcade (4 :D)</div>
+        <div class="grid-label">Fish Arcade</div>
         <div class="social-grid">
             <button class="s-btn" onclick="openGame('ttt')">❌ Ristinolla</button>
             <button class="s-btn" onclick="openGame('mines')">💣 Miinaharava</button>
             <button class="s-btn" onclick="window.open('https://www.247pinball.com/')">🎱 Pinball ↗</button>
-            <button class="s-btn" onclick="window.open('https://www.google.com/logos/2010/pacman10-i.html', '_blank')">🕹️ Pac-Man ↗</button>
+            <button class="s-btn" onclick="window.open('https://www.google.com/logos/2010/pacman10-i.html', '_blank')">🕹️ Pac-Man↗ 
+            <button class="s-btn" onclick="window.open('https://spacewaves.io/')">SpaceWaves  ↗</button>
+            <button class="s-btn" onclick="window.open('https://scratch.mit.edu/projects/935757174/')">Scratch Pong</button>
+            </button>
         </div>
     </div>
 
@@ -97,6 +101,7 @@
     </div>
 
     <div class="admin-bar">
+        Fish Control Center
         <img id="nav-pfp" src="https://i.imgur.com/pnrxkA8.png" class="pfp-small" onclick="openModal('acc-modal')">
         <button class="mini-btn" onclick="changeBG()">🖼️ BG</button>
         <button class="mini-btn" id="theme-toggle">🌙</button>
@@ -185,7 +190,7 @@
         'https://twitch.tv': { normal: 'Twitch', prank: 'Twist' },
         'https://instagram.com': { normal: 'Instagram', prank: 'gram' },
         'https://discord.com': { normal: 'Discord', prank: 'Fihcord' },
-        'https://github.com/KingdomOfFinland': { normal: 'GitHub', prank: 'GitHub' },
+        'https://github.com/KingdomOfFinland': { normal: 'GitHub', prank: 'GutHub' },
         'https://simplecellsoftware.com/caustic3.html': { normal: 'Caustic 3', prank: 'Plastic 3' },
         'https://microsoft.com': { normal: 'Microsoft', prank: 'Michaelsoft' }
     };
