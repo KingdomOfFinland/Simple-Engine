@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Engine | Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
+        body { 
+            background-color: var(--bg); background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text); font-family: 'Ubuntu', sans-serif; text-align: center; margin: 0; padding-top: 40px; 
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+        }
+        .search-container { margin: 15px auto; width: 90%; max-width: 650px; }
+        .search-box { 
+            width: 100%; padding: 15px 25px; border-radius: 50px; border: 2px solid var(--accent); 
+            font-size: 18px; outline: none; background: rgba(0,0,0,0.8); color: var(--text);
+            box-shadow: 0 0 15px rgba(0,255,0,0.2); box-sizing: border-box;
+        }
+        .grid-label { margin-top: 25px; color: var(--accent); font-weight: bold; font-size: 12px; text-transform: uppercase; display: block; }
+        .social-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; width: 100%; min-height: 40px; }
+        .s-btn { padding: 10px 18px; border-radius: 8px; border: none; background: #fff; cursor: pointer; font-size: 13px; font-weight: bold; color: #000; position: relative; display: flex; align-items: center; }
+        .s-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent); }
+        .del-btn { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; border: 2px solid white; cursor: pointer; display: none; line-height: 14px; }
+        .s-btn:hover .del-btn { display: block; }
+        #acc-modal { display: none; position: fixed; z-index: 999; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px); }
+        .modal-box { background: var(--box-bg); margin: 50px auto; padding: 20px; width: 320px; border-radius: 15px; border: 2px solid var(--accent); text-align: left; }
+        .modal-box input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; background: #000; color: #fff; border: 1px solid #555; }
+        .admin-bar { position: fixed; bottom: 15px; right: 15px; display: flex; gap: 10px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 50px; border: 1px solid var(--accent); }
+        .pfp-small { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="logo-area">
+        <img id="main-pfp" src="https://i.imgur.com/pnrxkA8.png" style="width:120px; border-radius:50%; border:3px solid var(--accent);">
+        <h1>Fish Engine</h1>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="search" class="search-box" placeholder="Hae..." autofocus>
+        
+        <div class="grid-label">Pikalinkit</div>
+        <div class="social-grid" id="default-links">
+            <button class="s-btn" onclick="go('https://youtube.com')">YouTube</button>
+            <button class="s-btn" onclick="go('https://tiktok.com')">TikTok</button>
+            <button class="s-btn" onclick="go('https://kick.com')">Kick</button>
+            <button class="s-btn" onclick="go('https://twitch.tv')">Twitch</button>
+            <button class="s-btn" onclick="go('https://microsoft.com')" id="ms-btn">Microsoft</button>
+        </div>
+
+        <div id="custom-section" style="display:none;">
+            <div class="grid-label">Omat Napit</div>
+            <div class="social-grid" id="custom-grid"></div>
+        </div>
+    </div>
+
+    <div id="acc-modal">
+        <div class="modal-box">
+            <h2 style="color:var(--accent)">Asetukset</h2>
+            <input type="text" id="c-label" placeholder="Nimi">
+            <input type="text" id="c-url" placeholder="URL (esim. google.fi)">
+            <input type="color" id="c-color" value="#ffffff" style="height:40px; width:100%;">
+            <button onclick="addBtn()" style="width:100%; height:40px; margin-top:10px; background:var(--accent); font-weight:bold;">+ LISÄÄ NAPPI</button>
+            <hr style="margin:20px 0; opacity:0.3;">
+            <button onclick="localStorage.clear(); location.reload();" style="width:100%; background:maroon; color:white; border:none; padding:10px; cursor:pointer;">TYHJENNÄ KAIKKI (RESET)</button>
+            <button onclick="document.getElementById('acc-modal').style.display='none'" style="width:100%; margin-top:10px; padding:10px;">SULJE</button>
+        </div>
+    </div>
+
+    <div class="admin-bar">
+        <img src="https://i.imgur.com/pnrxkA8.png" class="pfp-small" onclick="document.getElementById('acc-modal').style.display='block'">
+    </div>
+
+    <script>
+        function go(url) {
+            let target = url.trim();
+            if (!target.startsWith('http')) target = 'https://' + target;
+            window.open(target, '_blank');
+        }
+
+        function addBtn() {
+            const label = document.getElementById('c-label').value;
+            const url = document.getElementById('c-url').value;
+            const color = document.getElementById('c-color').value;
+
+            if(!label || !url) return alert("Täytä molemmat kentät!");
+
+            let data = [];
+            try {
+                data = JSON.parse(localStorage.getItem('fish_btns') || '[]');
+            } catch(e) { data = []; }
+
+            data.push({ label, url, color });
+            localStorage.setItem('fish_btns', JSON.stringify(data));
+            
+            document.getElementById('c-label').value = '';
+            document.getElementById('c-url').value = '';
+            render();
+        }
+
+        function delBtn(idx) {
+            let data = JSON.parse(localStorage.getItem('fish_btns') || '[]');
+            data.splice(idx, 1);
+            localStorage.setItem('fish_btns', JSON.stringify(data));
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('custom-grid');
+            const sec = document.getElementById('custom-section');
+            let data = [];
+
+            try {
+                const raw = localStorage.getItem('fish_btns');
+                data = raw ? JSON.parse(raw) : [];
+            } catch(e) {
+                console.error("Storage error:", e);
+                data = [];
+            }
+
+            grid.innerHTML = '';
+            if (data.length > 0) {
+                sec.style.display = 'block';
+                data.forEach((item, i) => {
+                    const b = document.createElement('button');
+                    b.className = 's-btn';
+                    b.style.background = item.color || '#fff';
+                    b.innerHTML = `${item.label} <span class="del-btn" onclick="event.stopPropagation(); delBtn(${i})">×</span>`;
+                    b.onclick = () => go(item.url);
+                    grid.appendChild(b);
+                });
+            } else {
+                sec.style.display = 'none';
+            }
+        }
+
+        // Search logic
+        document.getElementById('search').onkeydown = (e) => {
+            if(e.key === 'Enter') {
+                const v = e.target.value;
+                if(v.includes('.') && !v.includes(' ')) go(v);
+                else window.location.href = "https://google.com/search?q=" + encodeURIComponent(v);
+            }
+        };
+
+        window.onload = () => {
+            render();
+            // Final safety: Re-render after a tiny delay to catch any race conditions
+            setTimeout(render, 100);
+            
+            // April Fools
+            const d = new Date();
+            if(d.getMonth() === 3 && d.getDate() === 1) {
+                const ms = document.getElementById('ms-btn');
+                if(ms) ms.innerText = "Michaelsoft";
+            }
+        };
+    </script>
+</body>
+</html>
