@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISH v0.45</title>
+    <title>Fish Engine | FISH v0.46</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; }
@@ -30,6 +30,18 @@
         .s-btn { padding: 8px 14px; border-radius: 6px; border: none; background: #fff; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
         .s-btn:hover { background: var(--accent); transform: scale(1.05); box-shadow: 0 0 15px var(--accent); }
 
+        /* --- WIDGETS --- */
+        .widgets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-top: 10px; max-width: 800px; }
+        .widget { background: var(--box-bg); border: 2px solid var(--accent); border-radius: 8px; padding: 12px; text-align: center; cursor: grab; user-select: none; transition: 0.2s; resize: both; overflow: auto; min-width: 100px; min-height: 100px; position: relative; }
+        .widget:hover { box-shadow: 0 0 15px rgba(0,255,0,0.3); transform: translateY(-2px); }
+        .widget-label { font-size: 11px; color: var(--text); opacity: 0.7; margin-bottom: 8px; }
+        .widget-content { font-size: 18px; font-weight: bold; color: var(--accent); font-family: 'Courier New', monospace; }
+        .widget-news-content { font-size: 12px; text-align: left; overflow-y: auto; max-height: 200px; line-height: 1.4; }
+        .news-item { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,255,0,0.2); }
+        .news-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
+        .news-item a:hover { text-decoration: underline; }
+        .news-item-source { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+
         /* --- MODALS --- */
         #acc-modal, #game-overlay { display: none; position: fixed; z-index: 3000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); }
         .modal-box { background: var(--box-bg); color: var(--text); margin: 5% auto; padding: 25px; width: 340px; border-radius: 20px; border: 2px solid var(--accent); text-align: left; }
@@ -38,6 +50,21 @@
         /* --- TIC TAC TOE BOARD --- */
         .ttt-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; margin: 20px auto; justify-content: center; }
         .ttt-cell { width: 80px; height: 80px; background: #222; border: 2px solid var(--accent); font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+
+        /* --- SNAKE GAME --- */
+        #snake-canvas { border: 2px solid var(--accent); background: #000; display: block; margin: 20px auto; }
+
+        /* --- FLAPPY BIRD --- */
+        #flappy-canvas { border: 2px solid var(--accent); background: #87ceeb; display: block; margin: 20px auto; }
+
+        /* --- 2048 GAME --- */
+        .game-2048 { margin: 20px auto; }
+        .grid-2048 { display: grid; grid-template-columns: repeat(4, 80px); gap: 10px; margin: 20px auto; background: #bbada0; padding: 10px; border-radius: 6px; }
+        .tile-2048 { width: 80px; height: 80px; background: #cdc1b4; border-radius: 3px; font-size: 35px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease-out; }
+        .tile-2048.new { animation: popIn 0.15s ease-out; }
+        .tile-2048.merge { animation: merge 0.15s ease-out; }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes merge { 0% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         .admin-bar { position: fixed; bottom: 15px; right: 15px; display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.8); padding: 8px 12px; border-radius: 50px; border: 2px solid var(--accent); }
         .pfp-small { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
@@ -49,11 +76,31 @@
     <div class="logo-area">
         <img id="main-pfp" src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
         <h1>Fish Engine</h1>
-        <p style="opacity: 0.6; font-size: 12px;">v0.45</p>
+        <p style="opacity: 0.6; font-size: 12px;">v0.46</p>
     </div>
 
     <div class="search-container">
         <input type="text" id="search" class="search-box" placeholder="Mitä etsitään?..." autofocus>
+        
+        <div class="grid-label">Widgets</div>
+        <div id="widgets-grid" class="widgets-grid">
+            <div class="widget" draggable="true">
+                <div class="widget-label">🕐 Time</div>
+                <div id="widget-time" class="widget-content">--:--</div>
+            </div>
+            <div class="widget" draggable="true">
+                <div class="widget-label">📅 Date</div>
+                <div id="widget-date" class="widget-content">--/--</div>
+            </div>
+            <div class="widget" draggable="true">
+                <div class="widget-label">⏱️ Uptime</div>
+                <div id="widget-uptime" class="widget-content">0h 0m</div>
+            </div>
+            <div class="widget" draggable="true">
+                <div class="widget-label">📰 News</div>
+                <div id="widget-news" class="widget-content widget-news-content">Loading...</div>
+            </div>
+        </div>
         
         <div class="grid-label">Quick Links</div>
         <div class="social-grid">
@@ -66,6 +113,7 @@
             <button class="s-btn" onclick="openS('https://github.com/KingdomOfFinland')">GitHub</button>
             <button class="s-btn" onclick="openS('https://singlecellsoftware.com/caustic3.html')">Caustic 3</button>
             <button class="s-btn" onclick="openS('https://microsoft.com/')">Microsoft</button>
+            <button class="s-btn" onclick="openS('https://desku.fi')">Desku</button>
             <button class="s-btn" style="background: var(--accent);" onclick="openS('https://kingdomoffinland.github.io/music-makerfish')">Music maker [NEW]</button>
         </div>
 
@@ -73,11 +121,13 @@
         <div class="social-grid">
             <button class="s-btn" onclick="openGame('ttt')">❌ Ristinolla</button>
             <button class="s-btn" onclick="openGame('mines')">💣 Miinaharava</button>
+            <button class="s-btn" onclick="openGame('snake')">🐍 Snake</button>
+            <button class="s-btn" onclick="openGame('flappy')">🐦 Flappy Bird</button>
             <button class="s-btn" onclick="window.open('https://www.247pinball.com/')">🎱 Pinball ↗</button>
-            <button class="s-btn" onclick="window.open('https://www.google.com/logos/2010/pacman10-i.html', '_blank')">🕹️ Pac-Man↗ 
+            <button class="s-btn" onclick="window.open('https://www.google.com/logos/2010/pacman10-i.html', '_blank')">🕹️ Pac-Man ↗</button>
             <button class="s-btn" onclick="window.open('https://spacewaves.io/')">SpaceWaves ↗</button>
             <button class="s-btn" onclick="window.open('https://kingdomoffinland.github.io/ponghtml/')">Pong ↗</button>
-            </button>
+            <button class="s-btn" onclick="openGame('2048')">2️⃣ 2048</button>
         </div>
     </div>
 
@@ -87,6 +137,20 @@
             <input type="text" id="u-name" placeholder="Käyttäjänimi">
             <input type="password" id="u-pass" placeholder="Salasana">
             <input type="url" id="pfp-url" placeholder="PFP URL">
+            
+            <div style="margin-top:15px;">
+                <label style="font-size:11px; color:var(--accent); text-transform:uppercase;">Themes</label>
+                <div style="display:flex; gap:5px; margin:8px 0; flex-wrap:wrap;">
+                    <button class="mini-btn" onclick="applyTheme('neon')">Neon</button>
+                    <button class="mini-btn" onclick="applyTheme('ocean')">Ocean</button>
+                    <button class="mini-btn" onclick="applyTheme('forest')">Forest</button>
+                    <button class="mini-btn" onclick="applyTheme('sunset')">Sunset</button>
+                    <button class="mini-btn" onclick="applyTheme('cyber')">Cyber</button>
+                </div>
+                <input type="color" id="theme-color" value="#00ff00" style="width:100%; height:36px; border:1px solid #555; border-radius:5px; cursor:pointer; padding:0; margin:8px 0;">
+                <button class="s-btn" onclick="applyCustomTheme()" style="width:100%; margin-top:5px; background:var(--accent); color:black;">Apply Color</button>
+            </div>
+            
             <div style="margin-top:10px; display:flex; gap:5px;">
                 <button class="mini-btn" onclick="exportJSON()" style="flex:1;">Export JSON</button>
                 <button class="mini-btn" onclick="importJSON()" style="flex:1;">Import JSON</button>
@@ -109,7 +173,7 @@
     </div>
 
     <script>
-        function openS(url) { window.location.href = url; }
+        function openS(url) { window.open(url, '_blank'); }
         function handleSearch(q) {
             if (!q.trim()) return;
             if (q.includes('.') && !q.includes(' ')) { window.location.href = q.startsWith('http') ? q : 'https://' + q; }
@@ -130,18 +194,32 @@
                 tttBoard = Array(9).fill(null);
                 cont.innerHTML = `<h2 style="color:var(--accent)">RISTINOLLA</h2><div class="ttt-grid">${Array(9).fill().map((_,i)=>`<div class="ttt-cell" id="c-${i}" onclick="playTTT(${i})"></div>`).join('')}</div><p id="ttt-stat">Sinun vuorosi (X)</p>`;
             }
+            if(type === 'snake') initSnake(cont);
+            if(type === 'flappy') initFlappy(cont);
+            if(type === '2048') init2048(cont);
         }
 
         function playTTT(i) {
             if(tttBoard[i]) return;
-            tttBoard[i] = 'X'; document.getElementById(`c-${i}`).innerText = 'X';
-            if(checkWin('X')) { document.getElementById('ttt-stat').innerText = "VOITIT!"; return; }
+            tttBoard[i] = 'X'; 
+            let cell = document.getElementById(`c-${i}`);
+            if(cell) cell.innerText = 'X';
+            if(checkWin('X')) { 
+                let stat = document.getElementById('ttt-stat');
+                if(stat) stat.innerText = "VOITIT!"; 
+                return; 
+            }
             setTimeout(() => {
                 let empty = tttBoard.map((v,idx)=> v===null?idx:null).filter(v=>v!==null);
                 if(empty.length) { 
                     let move = empty[Math.floor(Math.random()*empty.length)];
-                    tttBoard[move] = 'O'; document.getElementById(`c-${move}`).innerText = 'O';
-                    if(checkWin('O')) document.getElementById('ttt-stat').innerText = "AI VOITTI!";
+                    tttBoard[move] = 'O'; 
+                    let moveCell = document.getElementById(`c-${move}`);
+                    if(moveCell) moveCell.innerText = 'O';
+                    if(checkWin('O')) {
+                        let stat = document.getElementById('ttt-stat');
+                        if(stat) stat.innerText = "AI VOITTI!";
+                    }
                 }
             }, 300);
         }
@@ -151,6 +229,167 @@
             return w.some(s => s.every(i => tttBoard[i] === p));
         }
 
+        // --- SNAKE GAME ---
+        let snake, food, dx, dy, score;
+        function initSnake(cont) {
+            cont.innerHTML = `<h2 style="color:var(--accent)">SNAKE</h2><canvas id="snake-canvas" width="400" height="400"></canvas><p id="snake-score">Score: 0</p>`;
+            const canvas = document.getElementById('snake-canvas');
+            const ctx = canvas.getContext('2d');
+            snake = [{x: 10, y: 10}];
+            food = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
+            dx = 1; dy = 0; score = 0;
+            
+            document.onkeydown = (e) => {
+                if(e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -1; }
+                if(e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 1; }
+                if(e.key === 'ArrowLeft' && dx === 0) { dx = -1; dy = 0; }
+                if(e.key === 'ArrowRight' && dx === 0) { dx = 1; dy = 0; }
+            };
+            
+            function draw() {
+                ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 400, 400);
+                ctx.fillStyle = '#00ff00'; 
+                snake.forEach(s => ctx.fillRect(s.x*20, s.y*20, 20, 20));
+                ctx.fillStyle = '#ff0000'; ctx.fillRect(food.x*20, food.y*20, 20, 20);
+                ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 2;
+                for(let i=0; i<=20; i++) { ctx.beginPath(); ctx.moveTo(i*20, 0); ctx.lineTo(i*20, 400); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, i*20); ctx.lineTo(400, i*20); ctx.stroke(); }
+            }
+            
+            function update() {
+                let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+                if(head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 || snake.some(s => s.x === head.x && s.y === head.y)) {
+                    let scoreEl = document.getElementById('snake-score');
+                    if(scoreEl) scoreEl.innerText = `Game Over! Score: ${score}`;
+                    document.onkeydown = null;
+                    return false;
+                }
+                snake.unshift(head);
+                if(head.x === food.x && head.y === food.y) {
+                    score += 10;
+                    let scoreEl = document.getElementById('snake-score');
+                    if(scoreEl) scoreEl.innerText = `Score: ${score}`;
+                    food = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
+                } else snake.pop();
+                return true;
+            }
+            
+            let gameId = setInterval(() => { if(document.getElementById('snake-canvas')) { if(!update()) clearInterval(gameId); else draw(); } else clearInterval(gameId); }, 150);
+            draw();
+        }
+
+        // --- FLAPPY BIRD ---
+        let flappyY, flappyVel, pipes, flappyScore;
+        function initFlappy(cont) {
+            cont.innerHTML = `<h2 style="color:var(--accent)">FLAPPY BIRD</h2><canvas id="flappy-canvas" width="400" height="400"></canvas><p id="flappy-score">Score: 0</p><p style="font-size:12px;">Click/Tap to jump</p>`;
+            const canvas = document.getElementById('flappy-canvas');
+            const ctx = canvas.getContext('2d');
+            flappyY = 200; flappyVel = 0; pipes = []; flappyScore = 0;
+            
+            document.onmousedown = () => { flappyVel = -7; };
+            
+            function draw() {
+                ctx.fillStyle = '#87ceeb'; ctx.fillRect(0, 0, 400, 400);
+                ctx.fillStyle = '#ffcc00'; ctx.beginPath(); ctx.arc(50, flappyY, 15, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#00cc00'; 
+                pipes.forEach(p => { ctx.fillRect(p.x, 0, 60, p.top); ctx.fillRect(p.x, p.top + 120, 60, 400); });
+            }
+            
+            function update() {
+                flappyVel += 0.5; flappyY += flappyVel;
+                if(flappyY > 400 || flappyY < 0) { 
+                    let scoreEl = document.getElementById('flappy-score');
+                    if(scoreEl) scoreEl.innerText = `Game Over! Score: ${flappyScore}`; 
+                    document.onmousedown = null; 
+                    return false; 
+                }
+                for(let p of pipes) {
+                    p.x -= 3;
+                    if(p.x + 60 < 50 && !p.scored) { 
+                        p.scored = true; flappyScore++; 
+                        let scoreEl = document.getElementById('flappy-score');
+                        if(scoreEl) scoreEl.innerText = `Score: ${flappyScore}`; 
+                    }
+                    if(50 > p.x && 50 < p.x + 60 && (flappyY - 15 < p.top || flappyY + 15 > p.top + 120)) { 
+                        let scoreEl = document.getElementById('flappy-score');
+                        if(scoreEl) scoreEl.innerText = `Game Over! Score: ${flappyScore}`; 
+                        document.onmousedown = null; 
+                        return false; 
+                    }
+                }
+                if(pipes.length === 0 || pipes[pipes.length-1].x < 200) pipes.push({x: 400, top: Math.random()*150 + 50, scored: false});
+                pipes = pipes.filter(p => p.x > -60);
+                return true;
+            }
+            
+            let gameId = setInterval(() => { if(document.getElementById('flappy-canvas')) { if(!update()) clearInterval(gameId); else draw(); } else clearInterval(gameId); }, 30);
+            draw();
+        }
+
+        // --- 2048 GAME ---
+        let board2048 = [];
+        function init2048(cont) {
+            cont.innerHTML = `<h2 style="color:var(--accent)">2048</h2><div class="game-2048"><div id="board2048" class="grid-2048"></div><p id="score2048">Score: 0</p><button class="s-btn" onclick="reset2048()" style="background:var(--accent); color:black;">New Game</button></div>`;
+            board2048 = Array(16).fill(0);
+            addTile2048(); addTile2048();
+            draw2048();
+            
+            document.onkeydown = (e) => {
+                if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                    move2048(e.key);
+                    draw2048();
+                }
+            };
+        }
+        
+        function addTile2048() {
+            let empty = board2048.map((v,i) => v===0?i:null).filter(v=>v!==null);
+            if(empty.length) board2048[empty[Math.floor(Math.random()*empty.length)]] = Math.random() < 0.9 ? 2 : 4;
+        }
+        
+        function move2048(dir) {
+            if(!document.getElementById('board2048')) return;
+            let before = board2048.join(',');
+            if(dir === 'ArrowLeft' || dir === 'ArrowRight') {
+                for(let i=0; i<4; i++) {
+                    let row = [board2048[i*4], board2048[i*4+1], board2048[i*4+2], board2048[i*4+3]];
+                    row = slideAndMerge(dir === 'ArrowLeft' ? row : row.reverse());
+                    if(dir === 'ArrowRight') row = row.reverse();
+                    [board2048[i*4], board2048[i*4+1], board2048[i*4+2], board2048[i*4+3]] = row;
+                }
+            } else {
+                for(let i=0; i<4; i++) {
+                    let col = [board2048[i], board2048[i+4], board2048[i+8], board2048[i+12]];
+                    col = slideAndMerge(dir === 'ArrowUp' ? col : col.reverse());
+                    if(dir === 'ArrowDown') col = col.reverse();
+                    [board2048[i], board2048[i+4], board2048[i+8], board2048[i+12]] = col;
+                }
+            }
+            if(before !== board2048.join(',')) { draw2048(true); addTile2048(); }
+        }
+        
+        function slideAndMerge(arr) {
+            arr = arr.filter(v => v !== 0);
+            for(let i=0; i<arr.length-1; i++) if(arr[i] === arr[i+1]) { arr[i] *= 2; arr.splice(i+1, 1); }
+            while(arr.length < 4) arr.push(0);
+            return arr;
+        }
+        
+        function draw2048(animate) {
+            let boardEl = document.getElementById('board2048');
+            if(boardEl) {
+                let html = board2048.map(v => `<div class="tile-2048${animate && v ? ' merge' : ''}" style="background:${getColor2048(v)}; color:${v>4?'#f9f6f2':'#776e65'}">${v||''}</div>`).join('');
+                boardEl.innerHTML = html;
+            }
+        }
+        
+        function getColor2048(v) {
+            const colors = {0:'#cdc1b4', 2:'#eee4da', 4:'#ede0c8', 8:'#f2b179', 16:'#f59563', 32:'#f67c5f', 64:'#f65e3b', 128:'#edcf72', 256:'#edcc61', 512:'#edc850', 1024:'#edc53f', 2048:'#edc22e'};
+            return colors[v] || '#3c3c2f';
+        }
+        
+        function reset2048() { board2048 = Array(16).fill(0); addTile2048(); addTile2048(); draw2048(); }
+
         // --- ACCOUNT LOGIC ---
         function saveProfile() {
             localStorage.setItem('f_user', document.getElementById('u-name').value);
@@ -159,9 +398,14 @@
             location.reload();
         }
         function exportJSON() {
+            const profileData = {
+                ...Object.fromEntries(Object.entries(localStorage).map(([k, v]) => [k, v])),
+                f_theme: localStorage.getItem('f_theme') || '',
+                f_theme_custom: document.getElementById('theme-color').value
+            };
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([JSON.stringify(localStorage)], {type: 'application/json'}));
-            a.download = 'fisb_profile.json'; a.click();
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(profileData)], {type: 'application/json'}));
+            a.download = 'fish_profile.json'; a.click();
         }
         function importJSON() {
             const input = document.createElement('input'); input.type = 'file';
@@ -172,16 +416,162 @@
         }
         function changeBG() { const url = prompt("GIF URL:"); if(url) { localStorage.setItem('f_bg', url); document.body.style.backgroundImage = `url('${url}')`; } }
 
+        // --- WIDGET LOGIC ---
+        let pageLoadTime = Date.now();
+        let draggedWidget = null;
+        
+        function updateWidgets() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const date = `${now.getMonth()+1}/${now.getDate()}`;
+            const uptime = Math.floor((Date.now() - pageLoadTime) / 1000);
+            const uptimeHours = Math.floor(uptime / 3600);
+            const uptimeMins = Math.floor((uptime % 3600) / 60);
+            
+            let timeEl = document.getElementById('widget-time');
+            let dateEl = document.getElementById('widget-date');
+            let uptimeEl = document.getElementById('widget-uptime');
+            
+            if(timeEl) timeEl.innerText = `${hours}:${mins}`;
+            if(dateEl) dateEl.innerText = date;
+            if(uptimeEl) uptimeEl.innerText = `${uptimeHours}h ${uptimeMins}m`;
+        }
+        
+        function fetchNews() {
+            fetch('https://www.iltalehti.fi/rss.xml')
+                .then(r => r.text())
+                .then(xml => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(xml, 'text/xml');
+                    const items = doc.querySelectorAll('item');
+                    let html = '';
+                    for(let i = 0; i < Math.min(3, items.length); i++) {
+                        const title = items[i].querySelector('title')?.textContent || 'No title';
+                        const link = items[i].querySelector('link')?.textContent || '#';
+                        html += `<div class="news-item"><a href="${link}" target="_blank">${title}</a><div class="news-item-source">via iltalehti.fi</div></div>`;
+                    }
+                    let newsEl = document.getElementById('widget-news');
+                    if(newsEl) newsEl.innerHTML = html;
+                })
+                .catch(e => {
+                    let newsEl = document.getElementById('widget-news');
+                    if(newsEl) newsEl.innerHTML = '<div style="font-size:11px;">RSS unavailable</div>';
+                });
+        }
+        
+        function initWidgetDrag() {
+            const widgets = document.querySelectorAll('.widget');
+            widgets.forEach(widget => {
+                widget.addEventListener('dragstart', (e) => {
+                    draggedWidget = widget;
+                    widget.style.opacity = '0.5';
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                widget.addEventListener('dragend', (e) => {
+                    widget.style.opacity = '1';
+                    draggedWidget = null;
+                });
+                
+                widget.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+                
+                widget.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if(draggedWidget && draggedWidget !== widget) {
+                        const parent = widget.parentNode;
+                        const allWidgets = [...parent.children];
+                        const draggedIndex = allWidgets.indexOf(draggedWidget);
+                        const targetIndex = allWidgets.indexOf(widget);
+                        
+                        if(draggedIndex < targetIndex) {
+                            widget.parentNode.insertBefore(draggedWidget, widget.nextSibling);
+                        } else {
+                            widget.parentNode.insertBefore(draggedWidget, widget);
+                        }
+                        saveWidgetOrder();
+                    }
+                });
+            });
+        }
+        
+        function saveWidgetOrder() {
+            const order = Array.from(document.querySelectorAll('.widget')).map((w, i) => i);
+            localStorage.setItem('f_widget_order', JSON.stringify(order));
+        }
+        
+        function restoreWidgetOrder() {
+            const saved = localStorage.getItem('f_widget_order');
+            if(saved) {
+                try {
+                    const order = JSON.parse(saved);
+                    const grid = document.getElementById('widgets-grid');
+                    const widgets = [...grid.children];
+                    order.forEach(idx => {
+                        if(widgets[idx]) grid.appendChild(widgets[idx]);
+                    });
+                } catch(e) {}
+            }
+        }
+        
+        setInterval(updateWidgets, 1000);
+        setInterval(fetchNews, 5 * 60 * 1000);
+
+        // --- THEME LOGIC ---
+        const themes = {
+            neon: { accent: '#00ff00', bg: '#0a0a0a', text: '#00ff00', boxBg: '#1a1a1a' },
+            ocean: { accent: '#00d4ff', bg: '#0a1628', text: '#00d4ff', boxBg: '#0d2540' },
+            forest: { accent: '#00ff88', bg: '#0a2810', text: '#00ff88', boxBg: '#143820' },
+            sunset: { accent: '#ff6b35', bg: '#2a1810', text: '#ff6b35', boxBg: '#3d2817' },
+            cyber: { accent: '#ff00ff', bg: '#0f0015', text: '#ff00ff', boxBg: '#1a001f' }
+        };
+
+        function applyTheme(themeName) {
+            const theme = themes[themeName];
+            if(theme) {
+                document.documentElement.style.setProperty('--accent', theme.accent);
+                document.documentElement.style.setProperty('--bg', theme.bg);
+                document.documentElement.style.setProperty('--text', theme.text);
+                document.documentElement.style.setProperty('--box-bg', theme.boxBg);
+                localStorage.setItem('f_theme', themeName);
+                document.getElementById('theme-color').value = theme.accent;
+            }
+        }
+
+        function applyCustomTheme() {
+            const color = document.getElementById('theme-color').value;
+            document.documentElement.style.setProperty('--accent', color);
+            localStorage.setItem('f_theme_custom', color);
+        }
+
         window.onload = () => {
             if(localStorage.getItem('f_user')) { document.getElementById('u-name').value = localStorage.getItem('f_user'); }
-            if(localStorage.getItem('f_bg')) document.body.style.backgroundImage = `url('${localStorage.getItem('f_bg')}')`;
+            if(localStorage.getItem('f_bg')) document.body.style.backgroundImage = `url('${localStorage.getItem('f_bg')}')`; 
             if(localStorage.getItem('f_pfp')) { document.getElementById('main-pfp').src = localStorage.getItem('f_pfp'); document.getElementById('nav-pfp').src = localStorage.getItem('f_pfp'); }
+            
+            // restore theme
+            if(localStorage.getItem('f_theme')) {
+                applyTheme(localStorage.getItem('f_theme'));
+            }
+            if(localStorage.getItem('f_theme_custom')) {
+                const customColor = localStorage.getItem('f_theme_custom');
+                document.documentElement.style.setProperty('--accent', customColor);
+                document.getElementById('theme-color').value = customColor;
+            }
+            
+            // init widgets
+            updateWidgets();
+            restoreWidgetOrder();
+            initWidgetDrag();
+            fetchNews();
         };
         document.getElementById('theme-toggle').onclick = () => { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); };
         
         (function() {
     const now = new Date();
-    // month is 0-indexed (3 = April), day is 1-indexed
     const isAprilFools = (now.getMonth() === 3 && now.getDate() === 1);
 
     const translations = {
@@ -192,28 +582,21 @@
         'https://instagram.com': { normal: 'Instagram', prank: 'gram' },
         'https://discord.com': { normal: 'Discord', prank: 'Fihcord' },
         'https://github.com/KingdomOfFinland': { normal: 'GitHub', prank: 'GutHub' },
-        'https://simplecellsoftware.com/caustic3.html': { normal: 'Caustic 3', prank: 'Plastic 3' },
+        'https://singlecellsoftware.com/caustic3.html': { normal: 'Caustic 3', prank: 'Plastic 3' },
         'https://microsoft.com': { normal: 'Microsoft', prank: 'Michaelsoft' }
     };
 
     document.querySelectorAll('.s-btn').forEach(button => {
-        // Find the URL inside the onclick attribute
-        const match = button.getAttribute('onclick').match(/'([^']+)'/);
+        const match = button.getAttribute('onclick').match(/'([^']+)'/) || button.getAttribute('onclick').match(/openS\('([^']+)'\)/);
         if (match && translations[match[1]]) {
             const urlData = translations[match[1]];
             button.textContent = isAprilFools ? urlData.prank : urlData.normal;
-            
-            // Handle the specific background color for Plastic 3
             if (urlData.prank === 'Plastic 3') {
                 button.style.background = isAprilFools ? 'var(--accent)' : '';
             }
         }
     });
 })();
-
-function openS(url) {
-    window.open(url, '_blank');
-}
     </script>
 </body>
 </html>
