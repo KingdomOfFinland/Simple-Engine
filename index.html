@@ -41,6 +41,12 @@
         .news-item a { color: var(--accent); text-decoration: none; font-weight: 500; }
         .news-item a:hover { text-decoration: underline; }
         .news-item-source { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+        .widget-quote-content { font-size: 12px; text-align: center; line-height: 1.5; font-style: italic; padding: 8px; }
+        .widget-palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .palette-color { width:100%; height:50px; border-radius:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.2); transition:0.2s; position:relative; }
+        .palette-color:hover { transform:scale(1.05); border:1px solid var(--accent); }
+        .palette-hex { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10px; font-weight:bold; color:#fff; text-shadow:0 0 3px #000; opacity:0; transition:0.2s; }
+        .palette-color:hover .palette-hex { opacity:1; }
 
         /* --- MODALS --- */
         #acc-modal, #game-overlay { display: none; position: fixed; z-index: 3000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); }
@@ -97,8 +103,12 @@
                 <div id="widget-uptime" class="widget-content">0h 0m</div>
             </div>
             <div class="widget" draggable="true">
-                <div class="widget-label">📰 News</div>
-                <div id="widget-news" class="widget-content widget-news-content">Loading...</div>
+                <div class="widget-label">💭 Quote</div>
+                <div id="widget-quote" class="widget-content widget-quote-content">Loading...</div>
+            </div>
+            <div class="widget" draggable="true">
+                <div class="widget-label" onclick="generatePalette()" style="cursor:pointer;">🎨 Palette ♻️</div>
+                <div id="widget-palette" class="widget-palette"></div>
             </div>
         </div>
         
@@ -110,7 +120,7 @@
             <button class="s-btn" onclick="openS('https://twitch.tv')">Twitch</button>
             <button class="s-btn" onclick="openS('https://instagram.com')">Instagram</button>
             <button class="s-btn" onclick="openS('https://discord.com')">Discord</button>
-            <button class="s-btn" onclick="openS('https://github.com/KingdomOfFinland')">GitHub</button>
+            <button class="s-btn" onclick="openS('https://github.com/kingdomoffinland')">GitHub</button>
             <button class="s-btn" onclick="openS('https://singlecellsoftware.com/caustic3.html')">Caustic 3</button>
             <button class="s-btn" onclick="openS('https://microsoft.com/')">Microsoft</button>
             <button class="s-btn" onclick="openS('https://desku.fi')">Desku</button>
@@ -438,26 +448,38 @@
             if(uptimeEl) uptimeEl.innerText = `${uptimeHours}h ${uptimeMins}m`;
         }
         
-        function fetchNews() {
-            fetch('https://www.iltalehti.fi/rss.xml')
-                .then(r => r.text())
-                .then(xml => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(xml, 'text/xml');
-                    const items = doc.querySelectorAll('item');
-                    let html = '';
-                    for(let i = 0; i < Math.min(3, items.length); i++) {
-                        const title = items[i].querySelector('title')?.textContent || 'No title';
-                        const link = items[i].querySelector('link')?.textContent || '#';
-                        html += `<div class="news-item"><a href="${link}" target="_blank">${title}</a><div class="news-item-source">via iltalehti.fi</div></div>`;
-                    }
-                    let newsEl = document.getElementById('widget-news');
-                    if(newsEl) newsEl.innerHTML = html;
+        function fetchQuote() {
+            fetch('https://api.quotable.io/random')
+                .then(r => r.json())
+                .then(data => {
+                    const quote = `"${data.content}" — ${data.author}`;
+                    let quoteEl = document.getElementById('widget-quote');
+                    if(quoteEl) quoteEl.innerText = quote;
                 })
                 .catch(e => {
-                    let newsEl = document.getElementById('widget-news');
-                    if(newsEl) newsEl.innerHTML = '<div style="font-size:11px;">RSS unavailable</div>';
+                    let quoteEl = document.getElementById('widget-quote');
+                    if(quoteEl) quoteEl.innerText = '"The best time to start is now." — Unknown';
                 });
+        }
+        
+        function generatePalette() {
+            const palette = [];
+            for(let i = 0; i < 4; i++) {
+                palette.push('#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0').toUpperCase());
+            }
+            let paletteEl = document.getElementById('widget-palette');
+            if(paletteEl) {
+                paletteEl.innerHTML = palette.map(color => 
+                    `<div class="palette-color" style="background:${color};" onclick="copyHex('${color}')"><div class="palette-hex">${color}</div></div>`
+                ).join('');
+            }
+            localStorage.setItem('f_palette', JSON.stringify(palette));
+        }
+        
+        function copyHex(hex) {
+            navigator.clipboard.writeText(hex).then(() => {
+                alert(`Copied: ${hex}`);
+            });
         }
         
         function initWidgetDrag() {
@@ -518,7 +540,7 @@
         }
         
         setInterval(updateWidgets, 1000);
-        setInterval(fetchNews, 5 * 60 * 1000);
+        setInterval(fetchQuote, 60 * 60 * 1000);
 
         // --- THEME LOGIC ---
         const themes = {
@@ -566,7 +588,8 @@
             updateWidgets();
             restoreWidgetOrder();
             initWidgetDrag();
-            fetchNews();
+            fetchQuote();
+            generatePalette();
         };
         document.getElementById('theme-toggle').onclick = () => { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); };
         
