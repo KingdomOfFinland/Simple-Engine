@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Engine | FISH v1</title>
+    <title>Fish Engine | FISH v0.46</title>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #1a1a1a; --text: #f2f2f2; --box-bg: #333; --accent: #00ff00; --font-scale: 1; --border-radius: 6px; }
@@ -82,7 +82,7 @@
     <div class="logo-area">
         <img id="main-pfp" src="https://i.imgur.com/pnrxkA8.png" alt="Fish Logo">
         <h1>Fish Engine</h1>
-        <p style="opacity: 0.6; font-size: 12px;">v1</p>
+        <p style="opacity: 0.6; font-size: 12px;">v0.46</p>
     </div>
 
     <div class="search-container">
@@ -113,6 +113,12 @@
             </div>
         </div>
         
+        <div class="grid-label" id="beta-label" style="display:none;">🧪 BETA FEATURES</div>
+        <div id="beta-features" style="display:none; display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:20px;">
+            <button class="s-btn" onclick="openGame('dvd')" style="background:var(--accent); color:black;">📀 DVD Spinner</button>
+            <button class="s-btn" onclick="openGame('dvd-bounce')" style="background:var(--accent); color:black;">🎪 Bouncy Logo</button>
+        </div>
+        
         <div class="grid-label">Quick Links</div>
         <div class="social-grid">
             <button class="s-btn" onclick="openS('https://youtube.com')">YouTube</button>
@@ -132,7 +138,6 @@
         <div class="social-grid">
             <button class="s-btn" onclick="openGame('fidget')">🌀 Fidget Spinner</button>
             <button class="s-btn" onclick="openGame('paint')">🎨 Paint</button>
-            <button class="s-btn" onclick="openGame('dvd')">📀 DVD Logo</button>
             <button class="s-btn" onclick="openGame('calculator')">🧮 Calculator</button>
             <button class="s-btn" onclick="openGame('notepad')">📝 Notepad</button>
             <button class="s-btn" onclick="openGame('timer')">⏲️ Timer</button>
@@ -362,6 +367,8 @@
             
             if(lowerCode === '\\qwertyuiopasdfghjklzxcvbnm,.-') {
                 cheats.beta = !cheats.beta;
+                document.getElementById('beta-label').style.display = cheats.beta ? 'block' : 'none';
+                document.getElementById('beta-features').style.display = cheats.beta ? 'grid' : 'none';
                 return `BETA MODE ${cheats.beta ? 'ACTIVATED' : 'DEACTIVATED'} 🧪`;
             }
             if(lowerCode === '\\doublefisht') {
@@ -418,12 +425,13 @@
             if(type === 'fidget') initFidget(cont);
             if(type === 'fishing') initFishing(cont);
             if(type === 'paint') initPaint(cont);
-            if(type === 'dvd') initDVD(cont);
             if(type === 'calculator') initCalculator(cont);
             if(type === 'notepad') initNotepad(cont);
             if(type === 'timer') initTimer(cont);
             if(type === 'dice') initDice(cont);
             if(type === 'coin') initCoin(cont);
+            if(type === 'dvd') initDVDSpinner(cont);
+            if(type === 'dvd-bounce') initDVDBounce(cont);
             if(type === 'rps') initRPS(cont);
             if(type === 'hangman') initHangman(cont);
             if(type === 'connect4') initConnect4(cont);
@@ -1590,11 +1598,81 @@
             }, 30);
         }
 
-        // --- PAINT GADGET ---
-        function initDVD(cont) {
-            cont.innerHTML = `<h2 style="color:var(--accent)">DVD LOGO</h2><canvas id="dvd-canvas" width="600" height="400" style="border:2px solid var(--accent); display:block; margin:10px auto; background:#000;"></canvas><p id="dvd-corners" style="text-align:center; font-size:12px;">Corners hit: 0</p>`;
+        // --- DVD SPINNER WIDGET ---
+        function initDVDSpinner(cont) {
+            cont.innerHTML = `<h2 style="color:var(--accent)">DVD SPINNER</h2><canvas id="dvd-spinner-canvas" width="300" height="300" style="border:2px solid var(--accent); display:block; margin:10px auto; background:#000; cursor:pointer;"></canvas><div style="text-align:center; margin:10px 0;"><button class="s-btn" onclick="spinDVD()" style="background:var(--accent); color:black; padding:8px 15px;">SPIN</button><button class="s-btn" onclick="resetDVD()" style="background:#ff4444; color:white; padding:8px 15px; margin-left:5px;">RESET</button></div><p id="dvd-spin-stat" style="text-align:center; font-size:12px;"></p>`;
             
-            const canvas = document.getElementById('dvd-canvas');
+            const canvas = document.getElementById('dvd-spinner-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            window.dvdRotation = 0;
+            window.dvdSpinSpeed = 0;
+            window.dvdSpinning = false;
+            
+            canvas.onclick = () => {
+                window.dvdSpinSpeed = Math.random() * 50 + 30;
+                window.dvdSpinning = true;
+            };
+            
+            window.spinDVD = () => {
+                window.dvdSpinSpeed = Math.random() * 50 + 30;
+                window.dvdSpinning = true;
+            };
+            
+            window.resetDVD = () => {
+                window.dvdRotation = 0;
+                window.dvdSpinSpeed = 0;
+                window.dvdSpinning = false;
+                document.getElementById('dvd-spin-stat').innerText = '';
+            };
+            
+            function drawDVD() {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, 300, 300);
+                
+                ctx.save();
+                ctx.translate(150, 150);
+                ctx.rotate(window.dvdRotation);
+                
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(0, 0, 80, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#00ff00';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('DVD', 0, 8);
+                
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(0, 0, 10, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            let gameLoop = setInterval(() => {
+                if(!document.getElementById('dvd-spinner-canvas')) { clearInterval(gameLoop); return; }
+                
+                if(window.dvdSpinning) {
+                    window.dvdRotation += window.dvdSpinSpeed * 0.01;
+                    window.dvdSpinSpeed *= 0.98;
+                    if(window.dvdSpinSpeed < 0.1) {
+                        window.dvdSpinning = false;
+                        document.getElementById('dvd-spin-stat').innerText = `Spun ${(window.dvdRotation / (Math.PI*2)).toFixed(1)} rotations!`;
+                    }
+                }
+                
+                drawDVD();
+            }, 30);
+        }
+
+        // --- DVD BOUNCY LOGO ---
+        function initDVDBounce(cont) {
+            cont.innerHTML = `<h2 style="color:var(--accent)">BOUNCY DVD LOGO</h2><canvas id="dvd-bounce-canvas" width="600" height="400" style="border:2px solid var(--accent); display:block; margin:10px auto; background:#000;"></canvas><p id="dvd-bounce-corners" style="text-align:center; font-size:12px;">Corners hit: 0</p>`;
+            
+            const canvas = document.getElementById('dvd-bounce-canvas');
             const ctx = canvas.getContext('2d');
             
             let x = Math.random() * canvas.width;
@@ -1615,7 +1693,7 @@
             }
             
             let gameLoop = setInterval(() => {
-                if(!document.getElementById('dvd-canvas')) { clearInterval(gameLoop); return; }
+                if(!document.getElementById('dvd-bounce-canvas')) { clearInterval(gameLoop); return; }
                 
                 x += vx;
                 y += vy;
@@ -1631,14 +1709,12 @@
                 
                 if((x <= 0 || x + 60 >= canvas.width) && (y <= 0 || y + 40 >= canvas.height)) {
                     cornersHit++;
-                    document.getElementById('dvd-corners').innerText = `Corners hit: ${cornersHit}`;
+                    document.getElementById('dvd-bounce-corners').innerText = `Corners hit: ${cornersHit}`;
                 }
                 
                 drawDVD();
             }, 30);
         }
-
-        // --- PAINT GADGET ---
         function initPaint(cont) {
             cont.innerHTML = `<h2 style="color:var(--accent)">PAINT</h2><div style="margin:10px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;"><label>Color: <input type="color" id="paint-color" value="#00ff00" style="width:40px; height:30px; cursor:pointer;"></label><label>Size: <input type="range" id="paint-size" min="1" max="20" value="3" style="width:100px;"><span id="size-display">3</span>px</label><button class="s-btn" onclick="clearPaint()" style="background:#ff4444; color:white; padding:5px 10px;">Clear</button><button class="s-btn" onclick="downloadPaint()" style="background:var(--accent); color:black; padding:5px 10px;">Download</button></div><canvas id="paint-canvas" width="852" height="480" style="border:2px solid var(--accent); cursor:crosshair; display:block; margin:10px auto; background:#000;"></canvas>`;
             
