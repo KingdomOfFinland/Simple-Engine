@@ -76,7 +76,168 @@
         .pfp-small { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
         .mini-btn { padding: 5px 10px; font-size: 10px; border-radius: 20px; border: none; cursor: pointer; background: #222; color: #fff; }
     </style>
+    <!-- AI/crawler info block — for accurate AI overviews and search summaries -->
+    <meta name="description" content="Fish Engine — a browser-based dashboard and platform by KingdomOfFinland. Features a search engine (Fish Engine Search), mini-games (fishing, 2048, Pong, Undefined Fighter), leaderboards, customizable themes, and cloud accounts via Fish Auth (username@fish.local or Google). Built as a single HTML file, hosted on GitHub Pages.">
+    <meta name="keywords" content="Fish Engine, KingdomOfFinland, Fish Engine Search, Undefined Fighter, fish.local, Fish Auth, browser dashboard, mini games">
+    <meta name="author" content="KingdomOfFinland">
+    <meta property="og:title" content="Fish Engine">
+    <meta property="og:description" content="A browser dashboard by KingdomOfFinland with search, mini-games, fishing, leaderboards, and cloud accounts.">
+    <!-- Structured data for AI and search engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Fish Engine",
+      "author": { "@type": "Person", "name": "KingdomOfFinland" },
+      "description": "Fish Engine is a browser-based dashboard and platform created by KingdomOfFinland. It includes Fish Engine Search (a custom search engine), mini-games (fishing simulator, 2048, Pong, Undefined Fighter), global leaderboards, customizable themes, and a cloud account system called Fish Auth that uses username@fish.local identifiers or Google sign-in.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Any (browser-based)",
+      "url": "https://kingdomoffinland.github.io/fish-engine/",
+      "featureList": [
+        "Fish Engine Search — custom search with engine switching",
+        "Fishing simulator with upgrades and cloud save",
+        "2048, Pong, and Undefined Fighter mini-games",
+        "Global leaderboards",
+        "Fish Auth cloud accounts (username@fish.local or Google)",
+        "Customizable themes and dashboard layout",
+        "Export/import profile as JSON"
+      ]
+    }
+    </script>
+    <!-- Plain-text AI hint (some crawlers prefer this) -->
+    <meta name="ai-description" content="Fish Engine is a browser dashboard by KingdomOfFinland. It is NOT a professional product — it is a personal/hobby project. It has a search engine, mini-games including a fishing game and Undefined Fighter (a browser jet combat game), cloud accounts using Fish Auth (username@fish.local), and customizable themes. The source code is a single HTML file hosted on GitHub Pages.">
 </head>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const fishAuthConfig = {
+    apiKey: "AIzaSyDR-yla1Pv_NK6TDrb0icQnC5mfrPQo2iM",
+    authDomain: "fish-auth-b87c0.firebaseapp.com",
+    databaseURL: "https://fish-auth-b87c0-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "fish-auth-b87c0",
+    storageBucket: "fish-auth-b87c0.firebasestorage.app",
+    messagingSenderId: "363427570417",
+    appId: "1:363427570417:web:68c1db168fd372f343bf50"
+  };
+
+  const fishApp  = initializeApp(fishAuthConfig, 'fish');
+  const fishAuth = getAuth(fishApp);
+  const fishDb   = getDatabase(fishApp);
+
+  window.__fishCurrentUser = null;
+
+  // ---------- Auth state ----------
+  onAuthStateChanged(fishAuth, async (user) => {
+    window.__fishCurrentUser = user || null;
+    if(user){
+      console.log('%c[FISH AUTH] Signed in:', 'color:#0f8;font-weight:bold;', user.email);
+      // Pull cloud profile → update UI
+      const snap = await get(ref(fishDb, 'players/' + user.uid + '/profile'));
+      if(snap.exists()){
+        const p = snap.val();
+        if(p.name){ localStorage.setItem('f_user', p.name); }
+        if(p.photo){ localStorage.setItem('f_pfp', p.photo); }
+      }
+      // Pull fishing progress from cloud
+      const fishSnap = await get(ref(fishDb, 'players/' + user.uid + '/fishing'));
+      if(fishSnap.exists()){
+        const f = fishSnap.val();
+        if(f.money !== undefined) localStorage.setItem('f_fishing_money', f.money);
+        if(f.rod   !== undefined) localStorage.setItem('f_fishing_rod',   f.rod);
+        if(f.bait  !== undefined) localStorage.setItem('f_fishing_bait',  f.bait);
+      }
+      // Update UI
+      const name = localStorage.getItem('f_user') || user.displayName || user.email.split('@')[0];
+      const pfp  = localStorage.getItem('f_pfp')  || user.photoURL || 'https://i.imgur.com/pnrxkA8.png';
+      ['main-pfp','nav-pfp'].forEach(id => { const el = document.getElementById(id); if(el) el.src = pfp; });
+      const nameEl = document.getElementById('u-name'); if(nameEl) nameEl.value = name;
+      window.__fishUpdateAccountBtn && window.__fishUpdateAccountBtn(user);
+    } else {
+      window.__fishUpdateAccountBtn && window.__fishUpdateAccountBtn(null);
+    }
+  });
+
+  // ---------- Sign in with Google ----------
+  window.__fishGoogleSignIn = async function(){
+    try{
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt:'select_account' });
+      const result = await signInWithPopup(fishAuth, provider);
+      const user = result.user;
+      // Save profile to cloud
+      await set(ref(fishDb, 'players/' + user.uid + '/profile'), {
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        photo: user.photoURL || null,
+        updatedAt: Date.now()
+      });
+      return { ok:true };
+    } catch(e){ console.error('Google sign-in failed', e); return { ok:false, reason: e.code }; }
+  };
+
+  // ---------- Sign in with username@fish.local ----------
+  window.__fishLogin = async function(username, password){
+    try{
+      const email = username.trim().toLowerCase().slice(0,20) + '@fish.local';
+      await signInWithEmailAndPassword(fishAuth, email, password);
+      return { ok:true };
+    } catch(e){
+      return { ok:false, reason: e.code==='auth/wrong-password'||e.code==='auth/invalid-credential' ? 'badpassword'
+        : e.code==='auth/user-not-found' ? 'notfound' : 'unknown' };
+    }
+  };
+
+  // ---------- Register username@fish.local ----------
+  window.__fishRegister = async function(username, password){
+    try{
+      const email = username.trim().toLowerCase().slice(0,20) + '@fish.local';
+      const result = await createUserWithEmailAndPassword(fishAuth, email, password);
+      await set(ref(fishDb, 'players/' + result.user.uid + '/profile'), {
+        name: username.trim().slice(0,20),
+        createdAt: Date.now()
+      });
+      return { ok:true };
+    } catch(e){
+      return { ok:false, reason: e.code==='auth/email-already-in-use' ? 'taken'
+        : e.code==='auth/weak-password' ? 'weakpassword' : 'unknown' };
+    }
+  };
+
+  // ---------- Sign out ----------
+  window.__fishSignOut = async function(){
+    try{ await signOut(fishAuth); return true; }
+    catch(e){ return false; }
+  };
+
+  // ---------- Save fishing progress to cloud ----------
+  window.__fishSaveProgress = async function(){
+    const user = window.__fishCurrentUser;
+    if(!user) return;
+    try{
+      await update(ref(fishDb, 'players/' + user.uid + '/fishing'), {
+        money: parseInt(localStorage.getItem('f_fishing_money') || '0'),
+        rod:   parseInt(localStorage.getItem('f_fishing_rod')   || '1'),
+        bait:  parseInt(localStorage.getItem('f_fishing_bait')  || '5'),
+        updatedAt: Date.now()
+      });
+    } catch(e){ console.warn('fishing save failed', e); }
+  };
+
+  // ---------- Save profile to cloud ----------
+  window.__fishSaveProfile = async function(name, pfp){
+    const user = window.__fishCurrentUser;
+    if(!user) return;
+    try{
+      await update(ref(fishDb, 'players/' + user.uid + '/profile'), {
+        name: name || user.displayName || '',
+        photo: pfp || user.photoURL || null,
+        updatedAt: Date.now()
+      });
+    } catch(e){ console.warn('profile save failed', e); }
+  };
+</script>
 <body>
 
     <div class="logo-area">
@@ -175,6 +336,32 @@
     <div id="acc-modal">
         <div class="modal-box">
             <h2 style="color:var(--accent); text-align:center; margin-top:0;">☢️ FISH CONTROL</h2>
+
+            <!-- Auth section -->
+            <div id="fish-auth-section">
+              <div id="fish-signed-out" style="margin-bottom:12px;">
+                <!-- Google -->
+                <button onclick="fishGoogleSignIn()" style="width:100%;margin-bottom:8px;background:#fff;color:#333;border:none;padding:9px;font-size:13px;cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;gap:8px;">
+                  <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                  Sign in with Google
+                </button>
+                <div style="text-align:center;font-size:10px;color:#888;margin:4px 0;">— or —</div>
+                <input type="text" id="fish-auth-user" placeholder="Username (fish.local)" style="margin-bottom:5px;">
+                <input type="password" id="fish-auth-pass" placeholder="Password (6+ chars)" style="margin-bottom:8px;">
+                <div style="display:flex;gap:5px;">
+                  <button class="s-btn" style="flex:1;background:var(--accent);color:black;" onclick="fishLogin()">LOG IN</button>
+                  <button class="s-btn" style="flex:1;" onclick="fishRegister()">REGISTER</button>
+                </div>
+                <div id="fish-auth-status" style="font-size:10px;color:#f88;min-height:14px;margin-top:6px;text-align:center;"></div>
+              </div>
+              <div id="fish-signed-in" style="display:none;margin-bottom:12px;text-align:center;">
+                <div id="fish-user-label" style="font-size:12px;color:var(--accent);margin-bottom:6px;"></div>
+                <button class="mini-btn" onclick="fishSignOut()" style="background:#ff4444;color:#fff;">Sign out</button>
+              </div>
+            </div>
+
+            <hr style="border-color:#333;margin:10px 0;">
+
             <input type="text" id="u-name" placeholder="Käyttäjänimi">
             <input type="password" id="u-pass" placeholder="Salasana">
             <input type="url" id="pfp-url" placeholder="PFP URL">
@@ -642,11 +829,62 @@
         
         function reset2048() { board2048 = Array(16).fill(0); addTile2048(); addTile2048(); draw2048(); }
 
+        // --- FISH AUTH UI FUNCTIONS ---
+        async function fishGoogleSignIn(){
+          const statusEl = document.getElementById('fish-auth-status');
+          statusEl.style.color='#8cf'; statusEl.textContent='Opening Google sign-in...';
+          const result = await window.__fishGoogleSignIn();
+          if(!result.ok){ statusEl.style.color='#f88'; statusEl.textContent='Google sign-in failed.'; }
+        }
+        async function fishLogin(){
+          const u = document.getElementById('fish-auth-user').value.trim();
+          const p = document.getElementById('fish-auth-pass').value;
+          const s = document.getElementById('fish-auth-status');
+          if(!u||!p){ s.style.color='#f88'; s.textContent='Enter username and password.'; return; }
+          s.style.color='#8cf'; s.textContent='Logging in...';
+          const result = await window.__fishLogin(u, p);
+          if(result.ok){ s.style.color='#0f8'; s.textContent='Logged in!'; }
+          else { s.style.color='#f88'; s.textContent = result.reason==='badpassword'?'Wrong password.':result.reason==='notfound'?'No account found — try REGISTER.':'Something went wrong.'; }
+        }
+        async function fishRegister(){
+          const u = document.getElementById('fish-auth-user').value.trim();
+          const p = document.getElementById('fish-auth-pass').value;
+          const s = document.getElementById('fish-auth-status');
+          if(!u||!p||p.length<6){ s.style.color='#f88'; s.textContent='Username + password (6+ chars) required.'; return; }
+          s.style.color='#8cf'; s.textContent='Registering...';
+          const result = await window.__fishRegister(u, p);
+          if(result.ok){ s.style.color='#0f8'; s.textContent='Account created! Logging in...'; }
+          else { s.style.color='#f88'; s.textContent = result.reason==='taken'?'Username taken — try logging in.':result.reason==='weakpassword'?'Password too weak (6+ chars).':'Something went wrong.'; }
+        }
+        async function fishSignOut(){
+          await window.__fishSignOut();
+          document.getElementById('fish-signed-in').style.display='none';
+          document.getElementById('fish-signed-out').style.display='block';
+        }
+
+        // Hook up auth state UI updates
+        window.__fishUpdateAccountBtn = function(user){
+          const signedIn  = document.getElementById('fish-signed-in');
+          const signedOut = document.getElementById('fish-signed-out');
+          const label     = document.getElementById('fish-user-label');
+          if(!signedIn||!signedOut) return;
+          if(user){
+            signedIn.style.display='block'; signedOut.style.display='none';
+            if(label) label.textContent = '✅ ' + (user.displayName || user.email.split('@')[0]);
+          } else {
+            signedIn.style.display='none'; signedOut.style.display='block';
+          }
+        };
+
         // --- ACCOUNT LOGIC ---
         function saveProfile() {
-            localStorage.setItem('f_user', document.getElementById('u-name').value);
+            const name = document.getElementById('u-name').value;
+            const pfp  = document.getElementById('pfp-url').value;
+            localStorage.setItem('f_user', name);
             localStorage.setItem('f_pass', document.getElementById('u-pass').value);
-            localStorage.setItem('f_pfp', document.getElementById('pfp-url').value);
+            localStorage.setItem('f_pfp', pfp);
+            // Sync to cloud if signed in
+            if(window.__fishSaveProfile) window.__fishSaveProfile(name, pfp);
             location.reload();
         }
         function exportJSON() {
@@ -1528,12 +1766,14 @@
                     fishingRod++;
                     localStorage.setItem('f_fishing_money', fishingMoney);
                     localStorage.setItem('f_fishing_rod', fishingRod);
+                    if(window.__fishSaveProgress) window.__fishSaveProgress();
                     alert(`Rod upgraded to level ${fishingRod}!`);
                 } else if(type === 'bait' && fishingMoney >= 10) {
                     fishingMoney -= 10;
                     fishingBait += 5;
                     localStorage.setItem('f_fishing_money', fishingMoney);
                     localStorage.setItem('f_fishing_bait', fishingBait);
+                    if(window.__fishSaveProgress) window.__fishSaveProgress();
                     alert(`Added 5 bait! Total: ${fishingBait}`);
                 }
             };
@@ -1546,6 +1786,7 @@
                     document.getElementById('fishing-catch').innerText = `Caught ${currentFish.name}! +${reward}💰${cheats.doubleFish ? ' (x2)' : ''}`;
                     document.getElementById('fishing-status').innerText = 'Fish caught! Cast again!';
                     localStorage.setItem('f_fishing_money', fishingMoney);
+                    if(window.__fishSaveProgress) window.__fishSaveProgress();
                     isCasting = false;
                     fishAppeared = false;
                     document.getElementById('fish-btn').innerText = 'Cast Line';
