@@ -1,15 +1,14 @@
+
 {
   "name": "fisb-bluefin",
   "version": "1.1.5",
   "description": "Fish Browser v1.1.5 Bluefin Ultimate Edition",
-  "main": "main.js",
+  "main": "electron-main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-packager . FishBrowser --platform=win32 --arch=x64 --overwrite --out=release-builds"
   },
-  "keywords": [
-    "browser", "electron", "adblock", "bluefin"
-  ],
+  "keywords": ["browser", "electron", "adblock", "bluefin"],
   "author": "FISB Dev",
   "license": "ISC",
   "devDependencies": {
