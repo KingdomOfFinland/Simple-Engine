@@ -5,12 +5,14 @@
     <title>Fish Browser v1.4.5 | Bluefin Ultimate</title>
     <style>
         :root { --main-bg: #000b1e; --ui-bg: #001535; --accent: #0088ff; --text: #00d9ff; --panel-hover: rgba(255,255,255,.08); --panel-border: rgba(255,255,255,.14); }
-        * { box-sizing: border-box; }\n        body, html { margin: 0; padding: 0; height: 100%; background: var(--main-bg); font-family: 'Segoe UI', sans-serif; overflow: hidden; color: white; }
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--main-bg); font-family: 'Segoe UI', sans-serif; overflow: hidden; color: white; }
         #browser-ui { display: flex; flex-direction: column; height: 100%; position: relative; }
         
         #tabs-bar { display: flex; background: var(--ui-bg); padding: 6px 10px; gap: 6px; border-bottom: 2px solid var(--accent); align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
         #tabs-container { display: flex; gap: 5px; overflow-x: auto; }
-        .tab { background: rgba(255,255,255,0.07); color: #fff; padding: 8px 12px; border-radius: 7px 7px 0 0; cursor: pointer; min-width: 120px; max-width: 190px; font-size: 11px; border: 1px solid var(--panel-border); border-bottom: 0; display: flex; justify-content: space-between; align-items: center; white-space: nowrap; transition: background .15s, border-color .15s; }\n        .tab:hover { background: var(--panel-hover); border-color: var(--accent); }
+        .tab { background: rgba(255,255,255,0.07); color: #fff; padding: 8px 12px; border-radius: 7px 7px 0 0; cursor: pointer; min-width: 120px; max-width: 190px; font-size: 11px; border: 1px solid var(--panel-border); border-bottom: 0; display: flex; justify-content: space-between; align-items: center; white-space: nowrap; transition: background .15s, border-color .15s; }
+        .tab:hover { background: var(--panel-hover); border-color: var(--accent); }
         .tab.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
         .tab-title { overflow: hidden; text-overflow: ellipsis; flex-grow: 1; }
         .close-btn { font-weight: bold; margin-left: 10px; padding: 0 4px; border-radius: 3px; }
@@ -18,7 +20,12 @@
 
         #nav-bar { display: flex; flex-wrap: wrap; background: rgba(0,0,0,0.2); padding: 8px 12px; gap: 8px; align-items: center; }
         .nav-btn { background: rgba(255,255,255,.07); border: 1px solid var(--panel-border); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background .15s, border-color .15s; }
-        .nav-btn:hover { background: var(--accent); border-color: var(--accent); color: black; }\n        .nav-btn:focus-visible, .lang-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }\n        #bookmarks-bar { align-items: center; flex-wrap: wrap; }\n        .bookmark { display: inline-block; padding: 4px 7px; border-radius: 4px; }\n        .bookmark:hover { background: var(--panel-hover); }\n        @media (max-width: 650px) { .tab { min-width: 95px; padding: 7px 8px; } #nav-bar { gap: 5px; padding: 7px; } input#url-input { min-width: 100px; } #side-menu { width: min(310px, 92vw); } }
+        .nav-btn:hover { background: var(--accent); border-color: var(--accent); color: black; }
+        .nav-btn:focus-visible, .lang-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+        #bookmarks-bar { align-items: center; flex-wrap: wrap; }
+        .bookmark { display: inline-block; padding: 4px 7px; border-radius: 4px; }
+        .bookmark:hover { background: var(--panel-hover); }
+        @media (max-width: 650px) { .tab { min-width: 95px; padding: 7px 8px; } #nav-bar { gap: 5px; padding: 7px; } input#url-input { min-width: 100px; } #side-menu { width: min(310px, 92vw); } }
         input#url-input { 
     flex-grow: 1; 
     background: rgba(0,0,0,0.5); 
@@ -39,7 +46,8 @@
         #side-menu.open { right: 0; }
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 999; }
         .lang-btn { background: rgba(255,255,255,.07); color: white; border: 1px solid var(--panel-border); padding: 5px; margin: 1px; cursor: pointer; font-size: 10px; min-width: 42px; flex: 1; border-radius: 4px; }
-        .lang-btn.active { background: var(--accent); color: black; border-color: var(--accent); }\n        .theme-btn-active { background: var(--accent) !important; color: #000 !important; border-color: var(--accent) !important; }
+        .lang-btn.active { background: var(--accent); color: black; border-color: var(--accent); }
+        .theme-btn-active { background: var(--accent) !important; color: #000 !important; border-color: var(--accent) !important; }
     </style>
 </head>
 <body>
@@ -241,7 +249,11 @@ function setTheme(t) {
     r.style.setProperty('--ui-bg', s.ui);
     r.style.setProperty('--accent', s.acc);
     r.style.setProperty('--text', s.txt);
-    localStorage.setItem('fisb_theme', t);\n    document.querySelectorAll('#side-menu .nav-btn').forEach(b => {\n        const action = b.getAttribute('onclick') || '';\n        b.classList.toggle('theme-btn-active', action === `setTheme('${t}')`);\n    });
+    localStorage.setItem('fisb_theme', t);
+    document.querySelectorAll('#side-menu .nav-btn').forEach(b => {
+        const action = b.getAttribute('onclick') || '';
+        b.classList.toggle('theme-btn-active', action === `setTheme('${t}')`);
+    });
 }
 
 function setLanguage(lang) {
@@ -251,7 +263,8 @@ function setLanguage(lang) {
     document.getElementById('txt-themes').innerText = t.themes + ":";
     document.getElementById('txt-history').innerText = t.history + ":";
     document.getElementById('url-input').placeholder = t.placeholder;
-    localStorage.setItem('fisb_lang', lang);\n    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', (b.getAttribute('onclick') || '').includes(`'${lang}'`)));
+    localStorage.setItem('fisb_lang', lang);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', (b.getAttribute('onclick') || '').includes(`'${lang}'`)));
 }
 
 function handleGlobalKeys(e, wv) {
