@@ -7,361 +7,74 @@
 <title>FISB | Fish Browser</title>
 <style>
 :root {
-    --bg: #07101d;
-    --surface: #0d1828;
-    --surface-2: #111f32;
-    --surface-3: #17263b;
-    --accent: #2ea8ff;
-    --accent-soft: rgba(46,168,255,.16);
-    --text: #f2f7ff;
-    --muted: #8da0b8;
-    --border: rgba(255,255,255,.09);
-    --shadow: 0 12px 35px rgba(0,0,0,.32);
+    --bg:#07101d; --surface:#0d1828; --surface-2:#111f32; --surface-3:#17263b;
+    --accent:#2ea8ff; --accent-soft:rgba(46,168,255,.16); --text:#f2f7ff; --muted:#8da0b8;
+    --border:rgba(255,255,255,.09); --shadow:0 12px 35px rgba(0,0,0,.32);
 }
-* { box-sizing: border-box; }
-html, body { width:100%; height:100%; margin:0; overflow:hidden; background:var(--bg); color:var(--text); font-family:"Segoe UI",system-ui,sans-serif; }
-button, input { font:inherit; }
-button { color:inherit; }
-#browser-ui { height:100%; display:flex; flex-direction:column; background:linear-gradient(180deg,var(--surface),var(--bg)); }
-
-/* tabs */
-#tabs-bar { height:42px; display:flex; align-items:end; gap:7px; padding:5px 8px 0; background:var(--surface); border-bottom:1px solid var(--border); }
-#tabs-container { flex:1; min-width:0; height:100%; display:flex; align-items:end; gap:5px; overflow-x:auto; scrollbar-width:none; }
-#tabs-container::-webkit-scrollbar { display:none; }
-.tab { height:36px; min-width:150px; max-width:230px; display:flex; align-items:center; gap:8px; padding:0 10px 0 13px; border:1px solid transparent; border-bottom:0; border-radius:9px 9px 0 0; background:transparent; color:var(--muted); cursor:pointer; user-select:none; transition:.16s ease; }
-.tab:hover { background:rgba(255,255,255,.045); color:var(--text); }
-.tab.active { background:var(--surface-2); border-color:var(--border); color:var(--text); box-shadow:0 -2px 14px rgba(0,0,0,.12); }
-.tab-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); flex:none; box-shadow:0 0 10px var(--accent); }
-.tab-title { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; font-size:12px; }
-.close-btn { width:22px; height:22px; display:grid; place-items:center; border-radius:6px; color:var(--muted); font-size:16px; }
-.close-btn:hover { background:rgba(255,255,255,.09); color:var(--text); }
-.icon-btn { width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); cursor:pointer; transition:.16s; }
-.icon-btn:hover { background:var(--surface-3); border-color:var(--accent); transform:translateY(-1px); }
-
-/* navigation */
-#nav-area { padding:8px 10px 7px; background:var(--surface-2); border-bottom:1px solid var(--border); }
-#nav-bar { display:flex; align-items:center; gap:6px; }
-.nav-btn { width:34px; height:34px; border:1px solid transparent; border-radius:9px; background:transparent; color:var(--muted); cursor:pointer; font-size:17px; display:grid; place-items:center; transition:.16s; }
-.nav-btn:hover { background:rgba(255,255,255,.07); color:var(--text); }
-.nav-btn:active { transform:scale(.95); }
-#url-wrap { flex:1; min-width:0; height:36px; display:flex; align-items:center; gap:8px; padding:0 12px; border:1px solid var(--border); border-radius:12px; background:rgba(0,0,0,.18); transition:.18s; }
-#url-wrap:focus-within { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
-#url-icon { color:var(--muted); font-size:14px; }
-#url-input { width:100%; border:0; outline:0; background:transparent; color:var(--text); font-size:13px; }
-#url-input::placeholder { color:#70839c; }
-
-/* bookmarks */
-#bookmarks-bar { min-height:29px; display:flex; align-items:center; gap:8px; padding:4px 4px 0; overflow:hidden; }
-#bookmarks-list { display:flex; align-items:center; gap:5px; min-width:0; overflow-x:auto; scrollbar-width:none; }
-#bookmarks-list::-webkit-scrollbar { display:none; }
-.bookmark { flex:none; max-width:170px; border:0; border-radius:7px; background:transparent; color:var(--muted); padding:5px 8px; cursor:pointer; font-size:11px; }
-.bookmark:hover { background:rgba(255,255,255,.06); color:var(--text); }
-
-/* content */
-#content-area { flex:1; position:relative; min-height:0; background:#000; }
-webview { position:absolute; inset:0; width:100%; height:100%; display:none; background:#fff; }
-webview.active { display:flex !important; }
-#loading-line { position:absolute; top:0; left:0; height:2px; width:0; z-index:20; background:var(--accent); box-shadow:0 0 12px var(--accent); transition:width .2s; }
-
-/* status */
-#status-bar { height:24px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 10px; background:var(--surface); border-top:1px solid var(--border); color:var(--muted); font-size:10px; }
-.status-accent { color:var(--accent); }
-
-/* overlay + settings */
-#overlay { position:fixed; inset:0; z-index:90; display:none; background:rgba(0,0,0,.48); backdrop-filter:blur(2px); }
-#side-menu { position:fixed; top:0; right:0; width:340px; max-width:92vw; height:100%; z-index:100; padding:20px; background:rgba(13,24,40,.98); border-left:1px solid var(--border); box-shadow:var(--shadow); transform:translateX(105%); transition:transform .22s ease; overflow:auto; }
-#side-menu.open { transform:translateX(0); }
-.menu-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-.menu-head h2 { margin:0; font-size:18px; }
-.menu-section { padding:15px 0; border-top:1px solid var(--border); }
-.menu-label { margin:0 0 9px; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
-.lang-grid, .theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-.lang-btn, .theme-btn { border:1px solid var(--border); border-radius:8px; background:var(--surface-2); padding:8px 5px; cursor:pointer; font-size:11px; }
-.lang-btn:hover, .theme-btn:hover, .lang-btn.active { border-color:var(--accent); background:var(--accent-soft); }
-.action-btn { width:100%; padding:10px; margin-top:7px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); cursor:pointer; text-align:left; }
-.action-btn:hover { border-color:var(--accent); background:var(--accent-soft); }
-#history-list { max-height:190px; overflow:auto; border:1px solid var(--border); border-radius:9px; background:#08111d; }
-.history-item { padding:8px 9px; border-bottom:1px solid var(--border); cursor:pointer; font-size:10px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.history-item:last-child { border-bottom:0; }
-.history-item:hover { background:rgba(255,255,255,.05); color:var(--text); }
-.empty { padding:15px; text-align:center; color:var(--muted); font-size:11px; }
-
-@media (max-width:650px) {
-    .tab { min-width:120px; }
-    #side-menu { width:300px; }
-    #bookmarks-bar { display:none; }
-}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif}
+button,input{font:inherit}button{color:inherit}
+#browser-ui{height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--surface),var(--bg))}
+#tabs-bar{height:42px;display:flex;align-items:end;gap:7px;padding:5px 8px 0;background:var(--surface);border-bottom:1px solid var(--border)}
+#tabs-container{flex:1;min-width:0;height:100%;display:flex;align-items:end;gap:5px;overflow-x:auto;scrollbar-width:none}#tabs-container::-webkit-scrollbar{display:none}
+.tab{height:36px;min-width:150px;max-width:230px;display:flex;align-items:center;gap:8px;padding:0 10px 0 13px;border:1px solid transparent;border-bottom:0;border-radius:9px 9px 0 0;background:transparent;color:var(--muted);cursor:pointer;user-select:none;transition:.16s ease}.tab:hover{background:rgba(255,255,255,.045);color:var(--text)}.tab.active{background:var(--surface-2);border-color:var(--border);color:var(--text);box-shadow:0 -2px 14px rgba(0,0,0,.12)}
+.tab-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 10px var(--accent)}.tab-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:12px}.close-btn{width:22px;height:22px;display:grid;place-items:center;border-radius:6px;color:var(--muted);font-size:16px}.close-btn:hover{background:rgba(255,255,255,.09);color:var(--text)}
+.icon-btn{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);cursor:pointer;transition:.16s}.icon-btn:hover{background:var(--surface-3);border-color:var(--accent);transform:translateY(-1px)}
+#nav-area{padding:8px 10px 7px;background:var(--surface-2);border-bottom:1px solid var(--border)}#nav-bar{display:flex;align-items:center;gap:6px}.nav-btn{width:34px;height:34px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--muted);cursor:pointer;font-size:17px;display:grid;place-items:center;transition:.16s}.nav-btn:hover{background:rgba(255,255,255,.07);color:var(--text)}.nav-btn:active{transform:scale(.95)}
+#url-wrap{flex:1;min-width:0;height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--border);border-radius:12px;background:var(--input-bg,rgba(0,0,0,.18));transition:.18s}#url-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}#url-icon{color:var(--muted);font-size:14px}#url-input{width:100%;border:0;outline:0;background:transparent;color:var(--text);font-size:13px}#url-input::placeholder{color:var(--muted)}
+#bookmarks-bar{min-height:29px;display:flex;align-items:center;gap:8px;padding:4px 4px 0;overflow:hidden}#bookmarks-list{display:flex;align-items:center;gap:5px;min-width:0;overflow-x:auto;scrollbar-width:none}#bookmarks-list::-webkit-scrollbar{display:none}.bookmark{flex:none;max-width:170px;border:0;border-radius:7px;background:transparent;color:var(--muted);padding:5px 8px;cursor:pointer;font-size:11px}.bookmark:hover{background:rgba(255,255,255,.06);color:var(--text)}
+#content-area{flex:1;position:relative;min-height:0;background:#000}webview{position:absolute;inset:0;width:100%;height:100%;display:none;background:#fff}webview.active{display:flex!important}#loading-line{position:absolute;top:0;left:0;height:2px;width:0;z-index:20;background:var(--accent);box-shadow:0 0 12px var(--accent);transition:width .2s}
+#status-bar{height:24px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 10px;background:var(--surface);border-top:1px solid var(--border);color:var(--muted);font-size:10px}.status-accent{color:var(--accent)}
+#overlay{position:fixed;inset:0;z-index:90;display:none;background:rgba(0,0,0,.48);backdrop-filter:blur(2px)}#side-menu{position:fixed;top:0;right:0;width:340px;max-width:92vw;height:100%;z-index:100;padding:20px;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow);transform:translateX(105%);transition:transform .22s ease;overflow:auto}#side-menu.open{transform:translateX(0)}.menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.menu-head h2{margin:0;font-size:18px}.menu-section{padding:15px 0;border-top:1px solid var(--border)}.menu-label{margin:0 0 9px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.lang-grid,.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.lang-btn,.theme-btn{border:1px solid var(--border);border-radius:8px;background:var(--surface-2);padding:8px 5px;cursor:pointer;font-size:11px}.lang-btn:hover,.theme-btn:hover,.lang-btn.active,.theme-btn.active{border-color:var(--accent);background:var(--accent-soft)}.action-btn{width:100%;padding:10px;margin-top:7px;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);cursor:pointer;text-align:left}.action-btn:hover{border-color:var(--accent);background:var(--accent-soft)}#history-list{max-height:190px;overflow:auto;border:1px solid var(--border);border-radius:9px;background:var(--surface)}.history-item{padding:8px 9px;border-bottom:1px solid var(--border);cursor:pointer;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.history-item:last-child{border-bottom:0}.history-item:hover{background:rgba(255,255,255,.05);color:var(--text)}.empty{padding:15px;text-align:center;color:var(--muted);font-size:11px}
+@media(max-width:650px){.tab{min-width:120px}#side-menu{width:300px}#bookmarks-bar{display:none}}
 </style>
 </head>
 <body>
 <div id="overlay" onclick="toggleMenu(false)"></div>
-
 <aside id="side-menu">
-    <div class="menu-head">
-        <h2 id="txt-settings">Settings</h2>
-        <button class="icon-btn" onclick="toggleMenu(false)" title="Close">×</button>
-    </div>
-
-    <div class="menu-section">
-        <p class="menu-label" id="txt-lang">Language</p>
-        <div class="lang-grid">
-            <button class="lang-btn" onclick="setLanguage('fi')">FI</button><button class="lang-btn" onclick="setLanguage('en')">EN</button><button class="lang-btn" onclick="setLanguage('et')">ET</button>
-            <button class="lang-btn" onclick="setLanguage('zh')">ZH</button><button class="lang-btn" onclick="setLanguage('ru')">RU</button><button class="lang-btn" onclick="setLanguage('uk')">UK</button>
-            <button class="lang-btn" onclick="setLanguage('de')">DE</button><button class="lang-btn" onclick="setLanguage('es')">ES</button><button class="lang-btn" onclick="setLanguage('ro')">RO</button>
-            <button class="lang-btn" onclick="setLanguage('sv')">SV</button><button class="lang-btn" onclick="setLanguage('ja')">JA</button>
-        </div>
-    </div>
-
-    <div class="menu-section">
-        <p class="menu-label" id="txt-themes">Theme</p>
-        <div class="theme-grid">
-            <button class="theme-btn" onclick="setTheme('sea')">🌊 Sea</button><button class="theme-btn" onclick="setTheme('tronic')">⚡ Tronic</button><button class="theme-btn" onclick="setTheme('bw')">◐ Mono</button>
-            <button class="theme-btn" onclick="setTheme('grass')">🌿 Grass</button><button class="theme-btn" onclick="setTheme('neon')">🔴 Neon</button><button class="theme-btn" onclick="setTheme('matrix')">🟢 Matrix</button>
-        </div>
-    </div>
-
-    <div class="menu-section">
-        <p class="menu-label" id="txt-history">History</p>
-        <div id="history-list"></div>
-        <button class="action-btn" onclick="clearHistory()">🗑 Clear history</button>
-    </div>
-
-    <div class="menu-section">
-        <button class="action-btn" onclick="openDownloads()">📥 Downloads</button>
-        <button class="action-btn" onclick="getCurrentWebview()?.openDevTools()">🛠 Inspect element</button>
-    </div>
+<div class="menu-head"><h2 id="txt-settings">Settings</h2><button class="icon-btn" onclick="toggleMenu(false)" title="Close">×</button></div>
+<div class="menu-section"><p class="menu-label" id="txt-lang">Language</p><div class="lang-grid">
+<button class="lang-btn" onclick="setLanguage('fi')">FI</button><button class="lang-btn" onclick="setLanguage('en')">EN</button><button class="lang-btn" onclick="setLanguage('et')">ET</button><button class="lang-btn" onclick="setLanguage('zh')">ZH</button><button class="lang-btn" onclick="setLanguage('ru')">RU</button><button class="lang-btn" onclick="setLanguage('uk')">UK</button><button class="lang-btn" onclick="setLanguage('de')">DE</button><button class="lang-btn" onclick="setLanguage('es')">ES</button><button class="lang-btn" onclick="setLanguage('ro')">RO</button><button class="lang-btn" onclick="setLanguage('sv')">SV</button><button class="lang-btn" onclick="setLanguage('ja')">JA</button>
+</div></div>
+<div class="menu-section"><p class="menu-label" id="txt-themes">Theme</p><div class="theme-grid"><button class="theme-btn" data-theme="sea" onclick="setTheme('sea')">🌊 Sea</button><button class="theme-btn" data-theme="tronic" onclick="setTheme('tronic')">⚡ Tronic</button><button class="theme-btn" data-theme="bw" onclick="setTheme('bw')">◐ Mono</button><button class="theme-btn" data-theme="grass" onclick="setTheme('grass')">🌿 Grass</button><button class="theme-btn" data-theme="neon" onclick="setTheme('neon')">🔴 Neon</button><button class="theme-btn" data-theme="matrix" onclick="setTheme('matrix')">🟢 Matrix</button></div></div>
+<div class="menu-section"><p class="menu-label" id="txt-history">History</p><div id="history-list"></div><button class="action-btn" onclick="clearHistory()">🗑 Clear history</button></div>
+<div class="menu-section"><button class="action-btn" onclick="openDownloads()">📥 Downloads</button><button class="action-btn" onclick="getCurrentWebview()?.openDevTools()">🛠 Inspect element</button></div>
 </aside>
-
-<div id="browser-ui">
-    <div id="tabs-bar">
-        <div id="tabs-container"></div>
-        <button class="icon-btn" onclick="createNewTab()" title="New tab">+</button>
-    </div>
-
-    <div id="nav-area">
-        <div id="nav-bar">
-            <button class="nav-btn" onclick="navigate('back')" title="Back">←</button>
-            <button class="nav-btn" onclick="navigate('forward')" title="Forward">→</button>
-            <button class="nav-btn" onclick="navigate('reload')" title="Reload">↻</button>
-            <div id="url-wrap">
-                <span id="url-icon">🔒</span>
-                <input id="url-input" type="text" autocomplete="off" spellcheck="false" placeholder="Search or enter address" onkeydown="handleUrl(event)">
-            </div>
-            <button class="nav-btn" onclick="addCurrentAsBookmark()" title="Bookmark">☆</button>
-            <button class="nav-btn" onclick="toggleMenu()" title="Menu">☰</button>
-        </div>
-        <div id="bookmarks-bar">
-            <span style="color:var(--muted);font-size:11px">★</span>
-            <div id="bookmarks-list"></div>
-        </div>
-    </div>
-
-    <main id="content-area"><div id="loading-line"></div></main>
-    <footer id="status-bar"><span id="mem-status">FISB ready</span><span class="status-accent">Fish Browser · 1.5.0</span></footer>
-</div>
-
+<div id="browser-ui"><div id="tabs-bar"><div id="tabs-container"></div><button class="icon-btn" onclick="createNewTab()" title="New tab">+</button></div>
+<div id="nav-area"><div id="nav-bar"><button class="nav-btn" onclick="navigate('back')" title="Back">←</button><button class="nav-btn" onclick="navigate('forward')" title="Forward">→</button><button class="nav-btn" onclick="navigate('reload')" title="Reload">↻</button><div id="url-wrap"><span id="url-icon">🔒</span><input id="url-input" type="text" autocomplete="off" spellcheck="false" placeholder="Search or enter address" onkeydown="handleUrl(event)"></div><button class="nav-btn" onclick="addCurrentAsBookmark()" title="Bookmark">☆</button><button class="nav-btn" onclick="toggleMenu()" title="Menu">☰</button></div><div id="bookmarks-bar"><span style="color:var(--muted);font-size:11px">★</span><div id="bookmarks-list"></div></div></div>
+<main id="content-area"><div id="loading-line"></div></main><footer id="status-bar"><span id="mem-status">FISB ready</span><span class="status-accent">Fish Browser · 1.5.0</span></footer></div>
 <script>
-let tabCount = 0;
-let activeTabId = null;
-let historyData = JSON.parse(localStorage.getItem('fisb_history') || '[]');
-let bookmarks = JSON.parse(localStorage.getItem('fisb_bookmarks') || '[]');
-let currentLanguage = localStorage.getItem('fisb_language') || 'fi';
-let currentTheme = localStorage.getItem('fisb_theme') || 'sea';
-
-const i18n = {
-    fi:{settings:'ASETUKSET',lang:'Kieli',themes:'Teema',history:'Historia',placeholder:'Hae tai syötä osoite'},
-    en:{settings:'SETTINGS',lang:'Language',themes:'Theme',history:'History',placeholder:'Search or enter address'},
-    et:{settings:'SEADED',lang:'Keel',themes:'Teema',history:'Ajalugu',placeholder:'Otsi või sisesta aadress'},
-    zh:{settings:'设置',lang:'语言',themes:'主题',history:'历史',placeholder:'搜索或输入地址'},
-    ru:{settings:'НАСТРОЙКИ',lang:'Язык',themes:'Тема',history:'История',placeholder:'Поиск или адрес'},
-    uk:{settings:'НАЛАШТУВАННЯ',lang:'Мова',themes:'Тема',history:'Історія',placeholder:'Пошук або адреса'},
-    de:{settings:'EINSTELLUNGEN',lang:'Sprache',themes:'Thema',history:'Verlauf',placeholder:'Suchen oder Adresse eingeben'},
-    es:{settings:'AJUSTES',lang:'Idioma',themes:'Tema',history:'Historial',placeholder:'Buscar o introducir dirección'},
-    ro:{settings:'SETĂRI',lang:'Limbă',themes:'Temă',history:'Istoric',placeholder:'Caută sau introdu adresa'},
-    sv:{settings:'INSTÄLLNINGAR',lang:'Språk',themes:'Tema',history:'Historik',placeholder:'Sök eller ange adress'},
-    ja:{settings:'設定',lang:'言語',themes:'テーマ',history:'履歴',placeholder:'検索またはアドレスを入力'}
-};
-
-const themes = {
-    sea:{bg:'#07101d',surface:'#0d1828',surface2:'#111f32',accent:'#2ea8ff'},
-    tronic:{bg:'#170e05',surface:'#211305',surface2:'#2b1907',accent:'#ff9d32'},
-    bw:{bg:'#0a0a0a',surface:'#141414',surface2:'#1c1c1c',accent:'#ffffff'},
-    grass:{bg:'#07130a',surface:'#0e1e12',surface2:'#14291a',accent:'#4dcc68'},
-    neon:{bg:'#10070a',surface:'#1b0d12',surface2:'#241119',accent:'#ff4d63'},
-    matrix:{bg:'#020a05',surface:'#061108',surface2:'#09180b',accent:'#36ff70'}
-};
-
-function save(key,value){ localStorage.setItem(key,JSON.stringify(value)); }
-function getCurrentWebview(){ return document.getElementById(`wv-${activeTabId}`); }
-
-function createNewTab(url='https://www.google.com'){
-    tabCount++;
-    const id=tabCount;
-    const tab=document.createElement('div');
-    tab.className='tab'; tab.id=`btn-wv-${id}`;
-    tab.innerHTML=`<span class="tab-dot"></span><span class="tab-title" id="title-wv-${id}">New tab</span><span class="close-btn" onclick="closeTab(event,${id})">×</span>`;
-    tab.onclick=()=>switchTab(id);
-    document.getElementById('tabs-container').appendChild(tab);
-
-    const wv=document.createElement('webview');
-    wv.id=`wv-${id}`; wv.src=url;
-    wv.setAttribute('allowpopups','');
-    wv.setAttribute('useragent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-
-    wv.addEventListener('page-title-updated',e=>{
-        const el=document.getElementById(`title-wv-${id}`);
-        if(el) el.textContent=(e.title || 'New tab').slice(0,32);
-    });
-    wv.addEventListener('did-navigate',e=>{
-        if(activeTabId===id) updateUrl(e.url);
-        addHistory(e.url);
-    });
-    wv.addEventListener('did-navigate-in-page',e=>{
-        if(activeTabId===id) updateUrl(e.url);
-    });
-    wv.addEventListener('did-start-loading',()=>{
-        if(activeTabId===id){ const line=document.getElementById('loading-line'); line.style.width='65%'; }
-    });
-    wv.addEventListener('did-stop-loading',()=>{
-        if(activeTabId===id){ const line=document.getElementById('loading-line'); line.style.width='100%'; setTimeout(()=>line.style.width='0',180); }
-    });
-    wv.addEventListener('did-finish-load',()=>{
-        try{ wv.insertCSS(`::selection{background:rgba(46,168,255,.35)!important}`); }catch(e){}
-    });
-    wv.addEventListener('keydown',e=>handleGlobalKeys(e,wv));
-
-    document.getElementById('content-area').appendChild(wv);
-    switchTab(id);
-    setTimeout(()=>{ const input=document.getElementById('url-input'); input.focus(); input.select(); },80);
-}
-
-function switchTab(id){
-    if(!document.getElementById(`wv-${id}`)) return;
-    activeTabId=id;
-    document.querySelectorAll('webview,.tab').forEach(el=>el.classList.remove('active'));
-    document.getElementById(`wv-${id}`).classList.add('active');
-    document.getElementById(`btn-wv-${id}`).classList.add('active');
-    try{ updateUrl(getCurrentWebview().getURL()); }catch(e){ updateUrl(''); }
-}
-
-function closeTab(e,id){
-    e.stopPropagation();
-    const wasActive=activeTabId===id;
-    document.getElementById(`btn-wv-${id}`)?.remove();
-    document.getElementById(`wv-${id}`)?.remove();
-    const tabs=[...document.querySelectorAll('.tab')];
-    if(!tabs.length){ createNewTab(); return; }
-    if(wasActive) switchTab(Number(tabs[tabs.length-1].id.replace('btn-wv-','')));
-}
-
-function navigate(action){
-    const wv=getCurrentWebview(); if(!wv) return;
-    if(action==='back' && wv.canGoBack()) wv.goBack();
-    else if(action==='forward' && wv.canGoForward()) wv.goForward();
-    else if(action==='reload') wv.reload();
-}
-
-function normalizeUrl(value){
-    const val=value.trim();
-    if(!val) return null;
-    if(/^https?:\/\//i.test(val)) return val;
-    if(/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(val)) return 'https://'+val;
-    return 'https://www.google.com/search?q='+encodeURIComponent(val);
-}
-function handleUrl(e){
-    if(e.key!=='Enter') return;
-    const url=normalizeUrl(e.target.value); if(url && getCurrentWebview()) getCurrentWebview().src=url;
-}
-function updateUrl(url){
-    const input=document.getElementById('url-input');
-    if(!input) return;
-    input.value=url || '';
-    document.getElementById('url-icon').textContent=/^https:/.test(url||'')?'🔒':'🌐';
-}
-
-function addHistory(url){
-    if(!url || url.startsWith('devtools://')) return;
-    historyData=historyData.filter(h=>h.url!==url);
-    historyData.push({url,time:Date.now()});
-    historyData=historyData.slice(-50);
-    save('fisb_history',historyData);
-    renderHistory();
-}
-function renderHistory(){
-    const list=document.getElementById('history-list');
-    if(!historyData.length){ list.innerHTML='<div class="empty">No history yet</div>'; return; }
-    list.innerHTML=historyData.slice().reverse().map(h=>`<div class="history-item" title="${escapeHtml(h.url)}" onclick="openHistory(${JSON.stringify(h.url)})">${escapeHtml(h.url)}</div>`).join('');
-}
-function openHistory(url){ const wv=getCurrentWebview(); if(wv) wv.src=url; toggleMenu(false); }
-function clearHistory(){ historyData=[]; save('fisb_history',historyData); renderHistory(); }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-function addCurrentAsBookmark(){
-    const wv=getCurrentWebview(); if(!wv) return;
-    const url=wv.getURL(); if(!url) return;
-    const title=(document.getElementById(`title-wv-${activeTabId}`)?.textContent || url).trim();
-    if(!bookmarks.some(b=>b.url===url)) bookmarks.push({url,title:title.slice(0,24)});
-    save('fisb_bookmarks',bookmarks.slice(-20)); renderBookmarks();
-}
-function renderBookmarks(){
-    const list=document.getElementById('bookmarks-list');
-    list.innerHTML=bookmarks.map((b,i)=>`<button class="bookmark" title="${escapeHtml(b.url)}" onclick="openBookmark(${i})">${escapeHtml(b.title||b.url)}</button>`).join('');
-}
-function openBookmark(i){ const b=bookmarks[i]; if(b&&getCurrentWebview()) getCurrentWebview().src=b.url; }
-
-function toggleMenu(force){
-    const menu=document.getElementById('side-menu');
-    const open=typeof force==='boolean'?force:!menu.classList.contains('open');
-    menu.classList.toggle('open',open);
-    document.getElementById('overlay').style.display=open?'block':'none';
-    if(open) renderHistory();
-}
-
-function setLanguage(lang){
-    currentLanguage=lang; localStorage.setItem('fisb_language',lang);
-    const t=i18n[lang]||i18n.en;
-    document.getElementById('txt-settings').textContent=t.settings;
-    document.getElementById('txt-lang').textContent=t.lang;
-    document.getElementById('txt-themes').textContent=t.themes;
-    document.getElementById('txt-history').textContent=t.history;
-    document.getElementById('url-input').placeholder=t.placeholder;
-    document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===lang.toUpperCase()));
-}
-
-function setTheme(name){
-    const t=themes[name]||themes.sea;
-    currentTheme=name; localStorage.setItem('fisb_theme',name);
-    const r=document.documentElement;
-    r.style.setProperty('--bg',t.bg); r.style.setProperty('--surface',t.surface); r.style.setProperty('--surface-2',t.surface2); r.style.setProperty('--accent',t.accent); r.style.setProperty('--accent-soft',t.accent+'2b');
-    document.querySelectorAll('.theme-btn').forEach(b=>b.style.borderColor='');
-    const active=[...document.querySelectorAll('.theme-btn')].find(b=>b.textContent.toLowerCase().includes(name==='sea'?'sea':name==='tronic'?'tronic':name==='bw'?'mono':name==='grass'?'grass':name==='neon'?'neon':'matrix'));
-    if(active) active.style.borderColor=t.accent;
-}
-
-function openDownloads(){
-    const wv=getCurrentWebview();
-    if(wv) wv.src='https://www.google.com/search?q=downloads';
-    toggleMenu(false);
-}
-
-function handleGlobalKeys(e,wv){
-    if(e.ctrlKey && e.key.toLowerCase()==='l'){ e.preventDefault(); document.getElementById('url-input').focus(); document.getElementById('url-input').select(); }
-    if(e.ctrlKey && e.key.toLowerCase()==='t'){ e.preventDefault(); createNewTab(); }
-    if(e.ctrlKey && e.key.toLowerCase()==='w'){ e.preventDefault(); closeTab({stopPropagation:()=>{}},activeTabId); }
-    if(e.key==='F5'){ e.preventDefault(); wv.reload(); }
-    if(e.altKey && e.key==='ArrowLeft'){ e.preventDefault(); if(wv.canGoBack()) wv.goBack(); }
-    if(e.altKey && e.key==='ArrowRight'){ e.preventDefault(); if(wv.canGoForward()) wv.goForward(); }
-}
-
-document.addEventListener('keydown',e=>{
-    if(e.key==='Escape') toggleMenu(false);
-});
-
-setTheme(currentTheme);
-setLanguage(currentLanguage);
-renderBookmarks();
-renderHistory();
-createNewTab();
+let tabCount=0,activeTabId=null;
+let historyData=JSON.parse(localStorage.getItem('fisb_history')||'[]');
+let bookmarks=JSON.parse(localStorage.getItem('fisb_bookmarks')||'[]');
+let currentLanguage=localStorage.getItem('fisb_language')||'fi';
+let currentTheme=localStorage.getItem('fisb_theme')||'sea';
+const i18n={fi:{settings:'ASETUKSET',lang:'Kieli',themes:'Teema',history:'Historia',placeholder:'Hae tai syötä osoite'},en:{settings:'SETTINGS',lang:'Language',themes:'Theme',history:'History',placeholder:'Search or enter address'},et:{settings:'SEADED',lang:'Keel',themes:'Teema',history:'Ajalugu',placeholder:'Otsi või sisesta aadress'},zh:{settings:'设置',lang:'语言',themes:'主题',history:'历史',placeholder:'搜索或输入地址'},ru:{settings:'НАСТРОЙКИ',lang:'Язык',themes:'Тема',history:'История',placeholder:'Поиск или адрес'},uk:{settings:'НАЛАШТУВАННЯ',lang:'Мова',themes:'Тема',history:'Історія',placeholder:'Пошук або адреса'},de:{settings:'EINSTELLUNGEN',lang:'Sprache',themes:'Thema',history:'Verlauf',placeholder:'Suchen oder Adresse eingeben'},es:{settings:'AJUSTES',lang:'Idioma',themes:'Tema',history:'Historial',placeholder:'Buscar o introducir dirección'},ro:{settings:'SETĂRI',lang:'Limbă',themes:'Temă',history:'Istoric',placeholder:'Caută sau introdu adresa'},sv:{settings:'INSTÄLLNINGAR',lang:'Språk',themes:'Tema',history:'Historik',placeholder:'Sök eller ange adress'},ja:{settings:'設定',lang:'言語',themes:'テーマ',history:'履歴',placeholder:'検索またはアドレスを入力'}};
+const themes={sea:{bg:'#07101d',surface:'#0d1828',surface2:'#111f32',surface3:'#17263b',accent:'#2ea8ff',text:'#f2f7ff',muted:'#8da0b8',border:'rgba(255,255,255,.09)',input:'rgba(0,0,0,.18)'},tronic:{bg:'#170e05',surface:'#211305',surface2:'#2b1907',surface3:'#38230b',accent:'#ff9d32',text:'#fff4e6',muted:'#c6a27d',border:'rgba(255,190,110,.16)',input:'rgba(0,0,0,.25)'},bw:{bg:'#0a0a0a',surface:'#141414',surface2:'#1c1c1c',surface3:'#292929',accent:'#fff',text:'#fff',muted:'#b5b5b5',border:'rgba(255,255,255,.18)',input:'rgba(0,0,0,.35)'},grass:{bg:'#07130a',surface:'#0e1e12',surface2:'#14291a',surface3:'#1b3822',accent:'#4dcc68',text:'#edfff1',muted:'#94b99b',border:'rgba(100,220,120,.15)',input:'rgba(0,0,0,.22)'},neon:{bg:'#10070a',surface:'#1b0d12',surface2:'#241119',surface3:'#351821',accent:'#ff4d63',text:'#fff0f3',muted:'#c99aa2',border:'rgba(255,77,99,.18)',input:'rgba(0,0,0,.3)'},matrix:{bg:'#020a05',surface:'#061108',surface2:'#09180b',surface3:'#0d2411',accent:'#36ff70',text:'#dcffe5',muted:'#75b985',border:'rgba(54,255,112,.16)',input:'rgba(0,0,0,.3)'}};
+function save(key,value){localStorage.setItem(key,JSON.stringify(value))}
+function getCurrentWebview(){return document.getElementById(`wv-${activeTabId}`)}
+function createNewTab(url='https://www.google.com'){tabCount++;const id=tabCount;const tab=document.createElement('div');tab.className='tab';tab.id=`btn-wv-${id}`;tab.innerHTML=`<span class="tab-dot"></span><span class="tab-title" id="title-wv-${id}">New tab</span><span class="close-btn" onclick="closeTab(event,${id})">×</span>`;tab.onclick=()=>switchTab(id);document.getElementById('tabs-container').appendChild(tab);const wv=document.createElement('webview');wv.id=`wv-${id}`;wv.src=url;wv.setAttribute('allowpopups','');wv.setAttribute('useragent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');wv.addEventListener('page-title-updated',e=>{const el=document.getElementById(`title-wv-${id}`);if(el)el.textContent=(e.title||'New tab').slice(0,32)});wv.addEventListener('did-navigate',e=>{if(activeTabId===id)updateUrl(e.url);addHistory(e.url)});wv.addEventListener('did-navigate-in-page',e=>{if(activeTabId===id)updateUrl(e.url)});wv.addEventListener('did-start-loading',()=>{if(activeTabId===id)document.getElementById('loading-line').style.width='65%'});wv.addEventListener('did-stop-loading',()=>{if(activeTabId===id){const line=document.getElementById('loading-line');line.style.width='100%';setTimeout(()=>line.style.width='0',180)}});wv.addEventListener('did-finish-load',()=>{try{wv.insertCSS(`::selection{background:${themes[currentTheme]?.accent||themes.sea.accent}59!important}`)}catch(e){}});wv.addEventListener('keydown',e=>handleGlobalKeys(e,wv));document.getElementById('content-area').appendChild(wv);switchTab(id);setTimeout(()=>{const input=document.getElementById('url-input');input.focus();input.select()},80)}
+function switchTab(id){if(!document.getElementById(`wv-${id}`))return;activeTabId=id;document.querySelectorAll('webview,.tab').forEach(el=>el.classList.remove('active'));document.getElementById(`wv-${id}`).classList.add('active');document.getElementById(`btn-wv-${id}`).classList.add('active');try{updateUrl(getCurrentWebview().getURL())}catch(e){updateUrl('')}}
+function closeTab(e,id){e.stopPropagation();const wasActive=activeTabId===id;document.getElementById(`btn-wv-${id}`)?.remove();document.getElementById(`wv-${id}`)?.remove();const tabs=[...document.querySelectorAll('.tab')];if(!tabs.length){createNewTab();return}if(wasActive)switchTab(Number(tabs[tabs.length-1].id.replace('btn-wv-','')))}
+function navigate(action){const wv=getCurrentWebview();if(!wv)return;if(action==='back'&&wv.canGoBack())wv.goBack();else if(action==='forward'&&wv.canGoForward())wv.goForward();else if(action==='reload')wv.reload()}
+function normalizeUrl(value){const val=value.trim();if(!val)return null;if(/^https?:\/\//i.test(val))return val;if(/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(val))return'https://'+val;return'https://www.google.com/search?q='+encodeURIComponent(val)}
+function handleUrl(e){if(e.key!=='Enter')return;const url=normalizeUrl(e.target.value);if(url&&getCurrentWebview())getCurrentWebview().src=url}
+function updateUrl(url){const input=document.getElementById('url-input');if(!input)return;input.value=url||'';document.getElementById('url-icon').textContent=/^https:/.test(url||'')?'🔒':'🌐'}
+function addHistory(url){if(!url||url.startsWith('devtools://'))return;historyData=historyData.filter(h=>h.url!==url);historyData.push({url,time:Date.now()});historyData=historyData.slice(-50);save('fisb_history',historyData);renderHistory()}
+function renderHistory(){const list=document.getElementById('history-list');if(!historyData.length){list.innerHTML='<div class="empty">No history yet</div>';return}list.innerHTML=historyData.slice().reverse().map(h=>`<div class="history-item" title="${escapeHtml(h.url)}" onclick="openHistory(${JSON.stringify(h.url)})">${escapeHtml(h.url)}</div>`).join('')}
+function openHistory(url){const wv=getCurrentWebview();if(wv)wv.src=url;toggleMenu(false)}function clearHistory(){historyData=[];save('fisb_history',historyData);renderHistory()}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function addCurrentAsBookmark(){const wv=getCurrentWebview();if(!wv)return;const url=wv.getURL();if(!url)return;const title=(document.getElementById(`title-wv-${activeTabId}`)?.textContent||url).trim();if(!bookmarks.some(b=>b.url===url))bookmarks.push({url,title:title.slice(0,24)});save('fisb_bookmarks',bookmarks.slice(-20));renderBookmarks()}
+function renderBookmarks(){const list=document.getElementById('bookmarks-list');list.innerHTML=bookmarks.map((b,i)=>`<button class="bookmark" title="${escapeHtml(b.url)}" onclick="openBookmark(${i})">${escapeHtml(b.title||b.url)}</button>`).join('')}
+function openBookmark(i){const b=bookmarks[i];if(b&&getCurrentWebview())getCurrentWebview().src=b.url}
+function toggleMenu(force){const menu=document.getElementById('side-menu');const open=typeof force==='boolean'?force:!menu.classList.contains('open');menu.classList.toggle('open',open);document.getElementById('overlay').style.display=open?'block':'none';if(open)renderHistory()}
+function setLanguage(lang){currentLanguage=lang;localStorage.setItem('fisb_language',lang);const t=i18n[lang]||i18n.en;document.getElementById('txt-settings').textContent=t.settings;document.getElementById('txt-lang').textContent=t.lang;document.getElementById('txt-themes').textContent=t.themes;document.getElementById('txt-history').textContent=t.history;document.getElementById('url-input').placeholder=t.placeholder;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===lang.toUpperCase()))}
+function setTheme(name){const t=themes[name]||themes.sea;currentTheme=themes[name]?name:'sea';localStorage.setItem('fisb_theme',currentTheme);const r=document.documentElement;[['--bg',t.bg],['--surface',t.surface],['--surface-2',t.surface2],['--surface-3',t.surface3],['--accent',t.accent],['--text',t.text],['--muted',t.muted],['--border',t.border],['--input-bg',t.input],['--accent-soft',hexToRgba(t.accent,.16)]].forEach(([k,v])=>r.style.setProperty(k,v));document.querySelector('meta[name="theme-color"]')?.setAttribute('content',t.surface);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.theme===currentTheme))}
+function hexToRgba(hex,alpha){const h=hex.replace('#','');if(h.length!==6)return`rgba(46,168,255,${alpha})`;const n=parseInt(h,16);return`rgba(${n>>16},${n>>8&255},${n&255},${alpha})`}
+function openDownloads(){const wv=getCurrentWebview();if(wv)wv.src='https://www.google.com/search?q=downloads';toggleMenu(false)}
+function handleGlobalKeys(e,wv){if(e.ctrlKey&&e.key.toLowerCase()==='l'){e.preventDefault();document.getElementById('url-input').focus();document.getElementById('url-input').select()}if(e.ctrlKey&&e.key.toLowerCase()==='t'){e.preventDefault();createNewTab()}if(e.ctrlKey&&e.key.toLowerCase()==='w'){e.preventDefault();closeTab({stopPropagation:()=>{}},activeTabId)}if(e.key==='F5'){e.preventDefault();wv.reload()}if(e.altKey&&e.key==='ArrowLeft'){e.preventDefault();if(wv.canGoBack())wv.goBack()}if(e.altKey&&e.key==='ArrowRight'){e.preventDefault();if(wv.canGoForward())wv.goForward()}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')toggleMenu(false)});
+setTheme(currentTheme);setLanguage(currentLanguage);renderBookmarks();renderHistory();createNewTab();
 </script>
 </body>
 </html>
