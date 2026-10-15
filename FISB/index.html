@@ -1,80 +1,321 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#08111f">
-<title>FISB | Fish Browser</title>
-<style>
-:root {
-    --bg:#07101d; --surface:#0d1828; --surface-2:#111f32; --surface-3:#17263b;
-    --accent:#2ea8ff; --accent-soft:rgba(46,168,255,.16); --text:#f2f7ff; --muted:#8da0b8;
-    --border:rgba(255,255,255,.09); --shadow:0 12px 35px rgba(0,0,0,.32);
+    <meta charset="UTF-8">
+    <title>Fish Browser v1.4.5 | Bluefin Ultimate</title>
+    <style>
+        :root { --main-bg: #000b1e; --ui-bg: #001535; --accent: #0088ff; --text: #00d9ff; --panel-hover: rgba(255,255,255,.08); --panel-border: rgba(255,255,255,.14); }
+        * { box-sizing: border-box; }\n        body, html { margin: 0; padding: 0; height: 100%; background: var(--main-bg); font-family: 'Segoe UI', sans-serif; overflow: hidden; color: white; }
+        #browser-ui { display: flex; flex-direction: column; height: 100%; position: relative; }
+        
+        #tabs-bar { display: flex; background: var(--ui-bg); padding: 6px 10px; gap: 6px; border-bottom: 2px solid var(--accent); align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+        #tabs-container { display: flex; gap: 5px; overflow-x: auto; }
+        .tab { background: rgba(255,255,255,0.07); color: #fff; padding: 8px 12px; border-radius: 7px 7px 0 0; cursor: pointer; min-width: 120px; max-width: 190px; font-size: 11px; border: 1px solid var(--panel-border); border-bottom: 0; display: flex; justify-content: space-between; align-items: center; white-space: nowrap; transition: background .15s, border-color .15s; }\n        .tab:hover { background: var(--panel-hover); border-color: var(--accent); }
+        .tab.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
+        .tab-title { overflow: hidden; text-overflow: ellipsis; flex-grow: 1; }
+        .close-btn { font-weight: bold; margin-left: 10px; padding: 0 4px; border-radius: 3px; }
+        .close-btn:hover { background: rgba(0,0,0,0.3); color: white; }
+
+        #nav-bar { display: flex; flex-wrap: wrap; background: rgba(0,0,0,0.2); padding: 8px 12px; gap: 8px; align-items: center; }
+        .nav-btn { background: rgba(255,255,255,.07); border: 1px solid var(--panel-border); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background .15s, border-color .15s; }
+        .nav-btn:hover { background: var(--accent); border-color: var(--accent); color: black; }\n        .nav-btn:focus-visible, .lang-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }\n        #bookmarks-bar { align-items: center; flex-wrap: wrap; }\n        .bookmark { display: inline-block; padding: 4px 7px; border-radius: 4px; }\n        .bookmark:hover { background: var(--panel-hover); }\n        @media (max-width: 650px) { .tab { min-width: 95px; padding: 7px 8px; } #nav-bar { gap: 5px; padding: 7px; } input#url-input { min-width: 100px; } #side-menu { width: min(310px, 92vw); } }
+        input#url-input { 
+    flex-grow: 1; 
+    background: rgba(0,0,0,0.5); 
+    border: 1px solid var(--accent); 
+    color: var(--text); 
+    padding: 7px 15px; 
+    border-radius: 20px; 
+    outline: none; 
+    font-family: 'Consolas', monospace; 
 }
-*{box-sizing:border-box}
-html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif}
-button,input{font:inherit}button{color:inherit}
-#browser-ui{height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--surface),var(--bg))}
-#tabs-bar{height:42px;display:flex;align-items:end;gap:7px;padding:5px 8px 0;background:var(--surface);border-bottom:1px solid var(--border)}
-#tabs-container{flex:1;min-width:0;height:100%;display:flex;align-items:end;gap:5px;overflow-x:auto;scrollbar-width:none}#tabs-container::-webkit-scrollbar{display:none}
-.tab{height:36px;min-width:150px;max-width:230px;display:flex;align-items:center;gap:8px;padding:0 10px 0 13px;border:1px solid transparent;border-bottom:0;border-radius:9px 9px 0 0;background:transparent;color:var(--muted);cursor:pointer;user-select:none;transition:.16s ease}.tab:hover{background:rgba(255,255,255,.045);color:var(--text)}.tab.active{background:var(--surface-2);border-color:var(--border);color:var(--text);box-shadow:0 -2px 14px rgba(0,0,0,.12)}
-.tab-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 10px var(--accent)}.tab-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:12px}.close-btn{width:22px;height:22px;display:grid;place-items:center;border-radius:6px;color:var(--muted);font-size:16px}.close-btn:hover{background:rgba(255,255,255,.09);color:var(--text)}
-.icon-btn{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);cursor:pointer;transition:.16s}.icon-btn:hover{background:var(--surface-3);border-color:var(--accent);transform:translateY(-1px)}
-#nav-area{padding:8px 10px 7px;background:var(--surface-2);border-bottom:1px solid var(--border)}#nav-bar{display:flex;align-items:center;gap:6px}.nav-btn{width:34px;height:34px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--muted);cursor:pointer;font-size:17px;display:grid;place-items:center;transition:.16s}.nav-btn:hover{background:rgba(255,255,255,.07);color:var(--text)}.nav-btn:active{transform:scale(.95)}
-#url-wrap{flex:1;min-width:0;height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--border);border-radius:12px;background:var(--input-bg,rgba(0,0,0,.18));transition:.18s}#url-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}#url-icon{color:var(--muted);font-size:14px}#url-input{width:100%;border:0;outline:0;background:transparent;color:var(--text);font-size:13px}#url-input::placeholder{color:var(--muted)}
-#bookmarks-bar{min-height:29px;display:flex;align-items:center;gap:8px;padding:4px 4px 0;overflow:hidden}#bookmarks-list{display:flex;align-items:center;gap:5px;min-width:0;overflow-x:auto;scrollbar-width:none}#bookmarks-list::-webkit-scrollbar{display:none}.bookmark{flex:none;max-width:170px;border:0;border-radius:7px;background:transparent;color:var(--muted);padding:5px 8px;cursor:pointer;font-size:11px}.bookmark:hover{background:rgba(255,255,255,.06);color:var(--text)}
-#content-area{flex:1;position:relative;min-height:0;background:#000}webview{position:absolute;inset:0;width:100%;height:100%;display:none;background:#fff}webview.active{display:flex!important}#loading-line{position:absolute;top:0;left:0;height:2px;width:0;z-index:20;background:var(--accent);box-shadow:0 0 12px var(--accent);transition:width .2s}
-#status-bar{height:24px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 10px;background:var(--surface);border-top:1px solid var(--border);color:var(--muted);font-size:10px}.status-accent{color:var(--accent)}
-#overlay{position:fixed;inset:0;z-index:90;display:none;background:rgba(0,0,0,.48);backdrop-filter:blur(2px)}#side-menu{position:fixed;top:0;right:0;width:340px;max-width:92vw;height:100%;z-index:100;padding:20px;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow);transform:translateX(105%);transition:transform .22s ease;overflow:auto}#side-menu.open{transform:translateX(0)}.menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.menu-head h2{margin:0;font-size:18px}.menu-section{padding:15px 0;border-top:1px solid var(--border)}.menu-label{margin:0 0 9px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.lang-grid,.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.lang-btn,.theme-btn{border:1px solid var(--border);border-radius:8px;background:var(--surface-2);padding:8px 5px;cursor:pointer;font-size:11px}.lang-btn:hover,.theme-btn:hover,.lang-btn.active,.theme-btn.active{border-color:var(--accent);background:var(--accent-soft)}.action-btn{width:100%;padding:10px;margin-top:7px;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);cursor:pointer;text-align:left}.action-btn:hover{border-color:var(--accent);background:var(--accent-soft)}#history-list{max-height:190px;overflow:auto;border:1px solid var(--border);border-radius:9px;background:var(--surface)}.history-item{padding:8px 9px;border-bottom:1px solid var(--border);cursor:pointer;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.history-item:last-child{border-bottom:0}.history-item:hover{background:rgba(255,255,255,.05);color:var(--text)}.empty{padding:15px;text-align:center;color:var(--muted);font-size:11px}
-@media(max-width:650px){.tab{min-width:120px}#side-menu{width:300px}#bookmarks-bar{display:none}}
-</style>
+        
+        #content-area { flex-grow: 1; position: relative; background: #000; }
+        webview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; }
+        webview.active { display: flex !important; }
+        
+
+        #side-menu { position: fixed; top: 0; right: -320px; width: 310px; height: 100%; background: var(--ui-bg); z-index: 1000; transition: 0.3s; border-left: 2px solid var(--accent); padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        #side-menu.open { right: 0; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 999; }
+        .lang-btn { background: rgba(255,255,255,.07); color: white; border: 1px solid var(--panel-border); padding: 5px; margin: 1px; cursor: pointer; font-size: 10px; min-width: 42px; flex: 1; border-radius: 4px; }
+        .lang-btn.active { background: var(--accent); color: black; border-color: var(--accent); }\n        .theme-btn-active { background: var(--accent) !important; color: #000 !important; border-color: var(--accent) !important; }
+    </style>
 </head>
 <body>
-<div id="overlay" onclick="toggleMenu(false)"></div>
-<aside id="side-menu">
-<div class="menu-head"><h2 id="txt-settings">Settings</h2><button class="icon-btn" onclick="toggleMenu(false)" title="Close">×</button></div>
-<div class="menu-section"><p class="menu-label" id="txt-lang">Language</p><div class="lang-grid">
-<button class="lang-btn" onclick="setLanguage('fi')">FI</button><button class="lang-btn" onclick="setLanguage('en')">EN</button><button class="lang-btn" onclick="setLanguage('et')">ET</button><button class="lang-btn" onclick="setLanguage('zh')">ZH</button><button class="lang-btn" onclick="setLanguage('ru')">RU</button><button class="lang-btn" onclick="setLanguage('uk')">UK</button><button class="lang-btn" onclick="setLanguage('de')">DE</button><button class="lang-btn" onclick="setLanguage('es')">ES</button><button class="lang-btn" onclick="setLanguage('ro')">RO</button><button class="lang-btn" onclick="setLanguage('sv')">SV</button><button class="lang-btn" onclick="setLanguage('ja')">JA</button>
-</div></div>
-<div class="menu-section"><p class="menu-label" id="txt-themes">Theme</p><div class="theme-grid"><button class="theme-btn" data-theme="sea" onclick="setTheme('sea')">🌊 Sea</button><button class="theme-btn" data-theme="tronic" onclick="setTheme('tronic')">⚡ Tronic</button><button class="theme-btn" data-theme="bw" onclick="setTheme('bw')">◐ Mono</button><button class="theme-btn" data-theme="grass" onclick="setTheme('grass')">🌿 Grass</button><button class="theme-btn" data-theme="neon" onclick="setTheme('neon')">🔴 Neon</button><button class="theme-btn" data-theme="matrix" onclick="setTheme('matrix')">🟢 Matrix</button></div></div>
-<div class="menu-section"><p class="menu-label" id="txt-history">History</p><div id="history-list"></div><button class="action-btn" onclick="clearHistory()">🗑 Clear history</button></div>
-<div class="menu-section"><button class="action-btn" onclick="openDownloads()">📥 Downloads</button><button class="action-btn" onclick="getCurrentWebview()?.openDevTools()">🛠 Inspect element</button></div>
-</aside>
-<div id="browser-ui"><div id="tabs-bar"><div id="tabs-container"></div><button class="icon-btn" onclick="createNewTab()" title="New tab">+</button></div>
-<div id="nav-area"><div id="nav-bar"><button class="nav-btn" onclick="navigate('back')" title="Back">←</button><button class="nav-btn" onclick="navigate('forward')" title="Forward">→</button><button class="nav-btn" onclick="navigate('reload')" title="Reload">↻</button><div id="url-wrap"><span id="url-icon">🔒</span><input id="url-input" type="text" autocomplete="off" spellcheck="false" placeholder="Search or enter address" onkeydown="handleUrl(event)"></div><button class="nav-btn" onclick="addCurrentAsBookmark()" title="Bookmark">☆</button><button class="nav-btn" onclick="toggleMenu()" title="Menu">☰</button></div><div id="bookmarks-bar"><span style="color:var(--muted);font-size:11px">★</span><div id="bookmarks-list"></div></div></div>
-<main id="content-area"><div id="loading-line"></div></main><footer id="status-bar"><span id="mem-status">FISB ready</span><span class="status-accent">Fish Browser · 1.5.0</span></footer></div>
+
+<div id="overlay" onclick="toggleMenu()"></div>
+
+<div id="side-menu">
+    <h3 id="txt-settings" style="color: var(--accent);">SETTINGS</h3>
+    <p id="location-status" style="font-size: 10px; color: #888;">Detecting...</p>
+    
+    <p><b id="txt-lang">Language:</b></p>
+    <div id="lang-grid" style="display: flex; flex-wrap: wrap; gap: 2px;">
+        <button class="lang-btn" onclick="setLanguage('fi')">FI</button>
+        <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="setLanguage('et')">ET</button>
+        <button class="lang-btn" onclick="setLanguage('zh')">ZH</button>
+        <button class="lang-btn" onclick="setLanguage('ru')">RU</button>
+        <button class="lang-btn" onclick="setLanguage('uk')">UK</button>
+        <button class="lang-btn" onclick="setLanguage('de')">DE</button>
+        <button class="lang-btn" onclick="setLanguage('es')">ES</button>
+        <button class="lang-btn" onclick="setLanguage('ro')">RO</button>
+        <button class="lang-btn" onclick="setLanguage('sv')">SV</button>
+        <button class="lang-btn" onclick="setLanguage('ja')">JA</button>
+    </div>
+
+    <p><b id="txt-themes">Themes:</b></p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+        <button class="nav-btn" onclick="setTheme('sea')">Sea Blue</button>
+        <button class="nav-btn" onclick="setTheme('tronic')">Tronic</button>
+        <button class="nav-btn" onclick="setTheme('bw')">B&W</button>
+        <button class="nav-btn" onclick="setTheme('grass')">Grass</button>
+        <button class="nav-btn" onclick="setTheme('neon')">Neon Red</button>
+        <button class="nav-btn" onclick="setTheme('matrix')">Matrix</button>
+    </div>
+
+    <p><b id="txt-history">History:</b></p>
+    <div id="history-list" style="font-size:10px; background:#000; padding:5px; height:100px; overflow-y:auto; color:#aaa;"></div>
+
+    <button class="nav-btn" style="width:100%; margin-top:10px;" onclick="openDownloads()">Avaa lataukset 📥</button>
+    
+    <br><button class="nav-btn" style="width:100%" onclick="getCurrentWebview()?.openDevTools()">Inspect Element</button>
+</div>
+
+<div id="browser-ui">
+    <div id="tabs-bar">
+        <div id="tabs-container"></div>
+        <button class="nav-btn" onclick="createNewTab()">+</button>
+    </div>
+
+    <div id="nav-bar">
+        <button class="nav-btn" onclick="getCurrentWebview()?.goBack()">←</button>
+        <button class="nav-btn" onclick="getCurrentWebview()?.goForward()">→</button>
+        <button class="nav-btn" onclick="getCurrentWebview()?.reload()">↻</button>
+        <input type="text" id="url-input" onkeypress="handleUrl(event)">
+        <button class="nav-btn" onclick="addCurrentAsBookmark()">⭐</button>
+        <div onclick="toggleMenu()" style="cursor:pointer; font-size: 24px; padding: 0 10px; color: var(--accent);">☰</div>
+        <div id="bookmarks-bar" style="display: flex; background: rgba(255,255,255,0.05); padding: 5px 12px; gap: 10px; border-bottom: 1px solid #333; font-size: 12px;">
+    <span style="color: #666; margin-right: 5px;">⭐</span>
+    <div id="bookmarks-list" style="display: flex; gap: 15px;">
+        </div>
+</div>
+    </div>
+
+    <div id="content-area"></div>
+    <div id="status-bar" style="background: var(--ui-bg); font-size: 11px; padding: 4px 15px; border-top: 1px solid var(--accent); color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+        <div id="mem-status">RAM: Ladataan...</div>
+        <div>Bluefin v1.4.5 | Ultimate Edition</div>
+    </div>
+</div>
+
 <script>
-let tabCount=0,activeTabId=null;
-let historyData=JSON.parse(localStorage.getItem('fisb_history')||'[]');
-let bookmarks=JSON.parse(localStorage.getItem('fisb_bookmarks')||'[]');
-let currentLanguage=localStorage.getItem('fisb_language')||'fi';
-let currentTheme=localStorage.getItem('fisb_theme')||'sea';
-const i18n={fi:{settings:'ASETUKSET',lang:'Kieli',themes:'Teema',history:'Historia',placeholder:'Hae tai syötä osoite'},en:{settings:'SETTINGS',lang:'Language',themes:'Theme',history:'History',placeholder:'Search or enter address'},et:{settings:'SEADED',lang:'Keel',themes:'Teema',history:'Ajalugu',placeholder:'Otsi või sisesta aadress'},zh:{settings:'设置',lang:'语言',themes:'主题',history:'历史',placeholder:'搜索或输入地址'},ru:{settings:'НАСТРОЙКИ',lang:'Язык',themes:'Тема',history:'История',placeholder:'Поиск или адрес'},uk:{settings:'НАЛАШТУВАННЯ',lang:'Мова',themes:'Тема',history:'Історія',placeholder:'Пошук або адреса'},de:{settings:'EINSTELLUNGEN',lang:'Sprache',themes:'Thema',history:'Verlauf',placeholder:'Suchen oder Adresse eingeben'},es:{settings:'AJUSTES',lang:'Idioma',themes:'Tema',history:'Historial',placeholder:'Buscar o introducir dirección'},ro:{settings:'SETĂRI',lang:'Limbă',themes:'Temă',history:'Istoric',placeholder:'Caută sau introdu adresa'},sv:{settings:'INSTÄLLNINGAR',lang:'Språk',themes:'Tema',history:'Historik',placeholder:'Sök eller ange adress'},ja:{settings:'設定',lang:'言語',themes:'テーマ',history:'履歴',placeholder:'検索またはアドレスを入力'}};
-const themes={sea:{bg:'#07101d',surface:'#0d1828',surface2:'#111f32',surface3:'#17263b',accent:'#2ea8ff',text:'#f2f7ff',muted:'#8da0b8',border:'rgba(255,255,255,.09)',input:'rgba(0,0,0,.18)'},tronic:{bg:'#170e05',surface:'#211305',surface2:'#2b1907',surface3:'#38230b',accent:'#ff9d32',text:'#fff4e6',muted:'#c6a27d',border:'rgba(255,190,110,.16)',input:'rgba(0,0,0,.25)'},bw:{bg:'#0a0a0a',surface:'#141414',surface2:'#1c1c1c',surface3:'#292929',accent:'#fff',text:'#fff',muted:'#b5b5b5',border:'rgba(255,255,255,.18)',input:'rgba(0,0,0,.35)'},grass:{bg:'#07130a',surface:'#0e1e12',surface2:'#14291a',surface3:'#1b3822',accent:'#4dcc68',text:'#edfff1',muted:'#94b99b',border:'rgba(100,220,120,.15)',input:'rgba(0,0,0,.22)'},neon:{bg:'#10070a',surface:'#1b0d12',surface2:'#241119',surface3:'#351821',accent:'#ff4d63',text:'#fff0f3',muted:'#c99aa2',border:'rgba(255,77,99,.18)',input:'rgba(0,0,0,.3)'},matrix:{bg:'#020a05',surface:'#061108',surface2:'#09180b',surface3:'#0d2411',accent:'#36ff70',text:'#dcffe5',muted:'#75b985',border:'rgba(54,255,112,.16)',input:'rgba(0,0,0,.3)'}};
-function save(key,value){localStorage.setItem(key,JSON.stringify(value))}
-function getCurrentWebview(){return document.getElementById(`wv-${activeTabId}`)}
-function createNewTab(url='https://www.google.com'){tabCount++;const id=tabCount;const tab=document.createElement('div');tab.className='tab';tab.id=`btn-wv-${id}`;tab.innerHTML=`<span class="tab-dot"></span><span class="tab-title" id="title-wv-${id}">New tab</span><span class="close-btn" onclick="closeTab(event,${id})">×</span>`;tab.onclick=()=>switchTab(id);document.getElementById('tabs-container').appendChild(tab);const wv=document.createElement('webview');wv.id=`wv-${id}`;wv.src=url;wv.setAttribute('allowpopups','');wv.setAttribute('useragent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');wv.addEventListener('page-title-updated',e=>{const el=document.getElementById(`title-wv-${id}`);if(el)el.textContent=(e.title||'New tab').slice(0,32)});wv.addEventListener('did-navigate',e=>{if(activeTabId===id)updateUrl(e.url);addHistory(e.url)});wv.addEventListener('did-navigate-in-page',e=>{if(activeTabId===id)updateUrl(e.url)});wv.addEventListener('did-start-loading',()=>{if(activeTabId===id)document.getElementById('loading-line').style.width='65%'});wv.addEventListener('did-stop-loading',()=>{if(activeTabId===id){const line=document.getElementById('loading-line');line.style.width='100%';setTimeout(()=>line.style.width='0',180)}});wv.addEventListener('did-finish-load',()=>{try{wv.insertCSS(`::selection{background:${themes[currentTheme]?.accent||themes.sea.accent}59!important}`)}catch(e){}});wv.addEventListener('keydown',e=>handleGlobalKeys(e,wv));document.getElementById('content-area').appendChild(wv);switchTab(id);setTimeout(()=>{const input=document.getElementById('url-input');input.focus();input.select()},80)}
-function switchTab(id){if(!document.getElementById(`wv-${id}`))return;activeTabId=id;document.querySelectorAll('webview,.tab').forEach(el=>el.classList.remove('active'));document.getElementById(`wv-${id}`).classList.add('active');document.getElementById(`btn-wv-${id}`).classList.add('active');try{updateUrl(getCurrentWebview().getURL())}catch(e){updateUrl('')}}
-function closeTab(e,id){e.stopPropagation();const wasActive=activeTabId===id;document.getElementById(`btn-wv-${id}`)?.remove();document.getElementById(`wv-${id}`)?.remove();const tabs=[...document.querySelectorAll('.tab')];if(!tabs.length){createNewTab();return}if(wasActive)switchTab(Number(tabs[tabs.length-1].id.replace('btn-wv-','')))}
-function navigate(action){const wv=getCurrentWebview();if(!wv)return;if(action==='back'&&wv.canGoBack())wv.goBack();else if(action==='forward'&&wv.canGoForward())wv.goForward();else if(action==='reload')wv.reload()}
-function normalizeUrl(value){const val=value.trim();if(!val)return null;if(/^https?:\/\//i.test(val))return val;if(/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(val))return'https://'+val;return'https://www.google.com/search?q='+encodeURIComponent(val)}
-function handleUrl(e){if(e.key!=='Enter')return;const url=normalizeUrl(e.target.value);if(url&&getCurrentWebview())getCurrentWebview().src=url}
-function updateUrl(url){const input=document.getElementById('url-input');if(!input)return;input.value=url||'';document.getElementById('url-icon').textContent=/^https:/.test(url||'')?'🔒':'🌐'}
-function addHistory(url){if(!url||url.startsWith('devtools://'))return;historyData=historyData.filter(h=>h.url!==url);historyData.push({url,time:Date.now()});historyData=historyData.slice(-50);save('fisb_history',historyData);renderHistory()}
-function renderHistory(){const list=document.getElementById('history-list');if(!historyData.length){list.innerHTML='<div class="empty">No history yet</div>';return}list.innerHTML=historyData.slice().reverse().map(h=>`<div class="history-item" title="${escapeHtml(h.url)}" onclick="openHistory(${JSON.stringify(h.url)})">${escapeHtml(h.url)}</div>`).join('')}
-function openHistory(url){const wv=getCurrentWebview();if(wv)wv.src=url;toggleMenu(false)}function clearHistory(){historyData=[];save('fisb_history',historyData);renderHistory()}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function addCurrentAsBookmark(){const wv=getCurrentWebview();if(!wv)return;const url=wv.getURL();if(!url)return;const title=(document.getElementById(`title-wv-${activeTabId}`)?.textContent||url).trim();if(!bookmarks.some(b=>b.url===url))bookmarks.push({url,title:title.slice(0,24)});save('fisb_bookmarks',bookmarks.slice(-20));renderBookmarks()}
-function renderBookmarks(){const list=document.getElementById('bookmarks-list');list.innerHTML=bookmarks.map((b,i)=>`<button class="bookmark" title="${escapeHtml(b.url)}" onclick="openBookmark(${i})">${escapeHtml(b.title||b.url)}</button>`).join('')}
-function openBookmark(i){const b=bookmarks[i];if(b&&getCurrentWebview())getCurrentWebview().src=b.url}
-function toggleMenu(force){const menu=document.getElementById('side-menu');const open=typeof force==='boolean'?force:!menu.classList.contains('open');menu.classList.toggle('open',open);document.getElementById('overlay').style.display=open?'block':'none';if(open)renderHistory()}
-function setLanguage(lang){currentLanguage=lang;localStorage.setItem('fisb_language',lang);const t=i18n[lang]||i18n.en;document.getElementById('txt-settings').textContent=t.settings;document.getElementById('txt-lang').textContent=t.lang;document.getElementById('txt-themes').textContent=t.themes;document.getElementById('txt-history').textContent=t.history;document.getElementById('url-input').placeholder=t.placeholder;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===lang.toUpperCase()))}
-function setTheme(name){const t=themes[name]||themes.sea;currentTheme=themes[name]?name:'sea';localStorage.setItem('fisb_theme',currentTheme);const r=document.documentElement;[['--bg',t.bg],['--surface',t.surface],['--surface-2',t.surface2],['--surface-3',t.surface3],['--accent',t.accent],['--text',t.text],['--muted',t.muted],['--border',t.border],['--input-bg',t.input],['--accent-soft',hexToRgba(t.accent,.16)]].forEach(([k,v])=>r.style.setProperty(k,v));document.querySelector('meta[name="theme-color"]')?.setAttribute('content',t.surface);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.theme===currentTheme))}
-function hexToRgba(hex,alpha){const h=hex.replace('#','');if(h.length!==6)return`rgba(46,168,255,${alpha})`;const n=parseInt(h,16);return`rgba(${n>>16},${n>>8&255},${n&255},${alpha})`}
-function openDownloads(){const wv=getCurrentWebview();if(wv)wv.src='https://www.google.com/search?q=downloads';toggleMenu(false)}
-function handleGlobalKeys(e,wv){if(e.ctrlKey&&e.key.toLowerCase()==='l'){e.preventDefault();document.getElementById('url-input').focus();document.getElementById('url-input').select()}if(e.ctrlKey&&e.key.toLowerCase()==='t'){e.preventDefault();createNewTab()}if(e.ctrlKey&&e.key.toLowerCase()==='w'){e.preventDefault();closeTab({stopPropagation:()=>{}},activeTabId)}if(e.key==='F5'){e.preventDefault();wv.reload()}if(e.altKey&&e.key==='ArrowLeft'){e.preventDefault();if(wv.canGoBack())wv.goBack()}if(e.altKey&&e.key==='ArrowRight'){e.preventDefault();if(wv.canGoForward())wv.goForward()}}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')toggleMenu(false)});
-setTheme(currentTheme);setLanguage(currentLanguage);renderBookmarks();renderHistory();createNewTab();
+let tabCount = 0;
+let activeTabId = null;
+let historyData = JSON.parse(localStorage.getItem('fisb_history')) || [];
+
+const i18n = {
+    fi: { settings: "ASETUKSET", lang: "Kieli", themes: "Teemat", history: "Historia", placeholder: "Hae..." },
+    en: { settings: "SETTINGS", lang: "Language", themes: "Themes", history: "History", placeholder: "Search..." },
+    et: { settings: "SEADED", lang: "Keel", themes: "Teemad", history: "Ajalugu", placeholder: "Otsi..." },
+    zh: { settings: "设置", lang: "语言", themes: "主题", history: "历史", placeholder: "搜索..." },
+    ru: { settings: "НАСТРОЙКИ", lang: "Язык", themes: "Темы", history: "Historia", placeholder: "Поиск..." },
+    uk: { settings: "НАЛАШTUВАННЯ", lang: "Мова", themes: "Теми", history: "Istoriya", placeholder: "Poshuk..." },
+    de: { settings: "EINSTELLUNGEN", lang: "Sprache", themes: "Themen", history: "Verlauf", placeholder: "Suche..." },
+    es: { settings: "AJUSTES", lang: "Idioma", themes: "Temas", history: "Historial", placeholder: "Buscar..." },
+    ro: { settings: "SETĂRI", lang: "Limbă", themes: "Teme", history: "Istoric", placeholder: "Caută..." },
+    sv: { settings: "INSTÄLLNINGAR", lang: "Språk", themes: "Teman", history: "Historik", placeholder: "Sök..." },
+    ja: { settings: "設定", lang: "言語", themes: "テーマ", history: "歴史", placeholder: "検索..." }
+};
+
+// YHDISTETTY JA KORJATTU TABIN LUONTI
+function createNewTab(url = "https://www.google.com") {
+    tabCount++;
+    const id = tabCount;
+    const tab = document.createElement('div');
+    tab.className = 'tab';
+    tab.id = `btn-wv-${id}`;
+    tab.innerHTML = `<span class="tab-title" id="title-wv-${id}">Ladataan...</span><span class="close-btn" onclick="closeTab(event, ${id})">×</span>`;
+    tab.onclick = () => switchTab(id);
+    document.getElementById('tabs-container').appendChild(tab);
+
+    const wv = document.createElement('webview');
+    wv.id = `wv-${id}`;
+    wv.src = url;
+    wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    wv.setAttribute('allowpopups', ''); // Sallii pop-upit
+
+    wv.addEventListener('page-title-updated', (e) => {
+        const titleEl = document.getElementById(`title-wv-${id}`);
+        if(titleEl) titleEl.innerText = e.title.substring(0, 18);
+    });
+
+    wv.addEventListener('did-navigate', (e) => {
+        if (activeTabId === id) document.getElementById('url-input').value = e.url;
+        historyData.push({url: e.url});
+        localStorage.setItem('fisb_history', JSON.stringify(historyData.slice(-30)));
+    });
+
+    // 🌙 Dark Mode & Näppäimet webviewin sisällä
+    wv.addEventListener('did-finish-load', () => {
+        wv.insertCSS(`
+            html, body { background-color: #121212 !important; color: #e0e0e0 !important; }
+            img, video { filter: brightness(.8) contrast(1.2); }
+            * { border-color: #333 !important; }
+        `);
+    });
+
+    wv.addEventListener('keydown', (e) => {
+        handleGlobalKeys(e, wv);
+    });
+
+    document.getElementById('content-area').appendChild(wv);
+    switchTab(id);
+
+    // Focus osoitepalkkiin automaattisesti
+    setTimeout(() => {
+        const urlInput = document.getElementById('url-input');
+        if(urlInput) {
+            urlInput.focus();
+            urlInput.select();
+        }
+    }, 100);
+}
+
+function switchTab(id) {
+    activeTabId = id;
+    document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
+    document.getElementById(`wv-${id}`)?.classList.add('active');
+    document.getElementById(`btn-wv-${id}`)?.classList.add('active');
+    const wv = document.getElementById(`wv-${id}`);
+    if(wv) try { document.getElementById('url-input').value = wv.getURL(); } catch(e) {}
+}
+
+function closeTab(e, id) {
+    e.stopPropagation();
+    document.getElementById(`btn-wv-${id}`)?.remove();
+    document.getElementById(`wv-${id}`)?.remove();
+    const rem = document.querySelectorAll('.tab');
+    if (rem.length > 0) {
+        const lastId = rem[rem.length - 1].id.replace('btn-wv-', '');
+        switchTab(parseInt(lastId));
+    } else {
+        createNewTab();
+    }
+}
+
+function handleUrl(e) {
+    if (e.key === 'Enter') {
+        let val = e.target.value;
+        if (!val.includes('.') && !val.startsWith('http')) {
+            val = 'https://www.google.com/search?q=' + encodeURIComponent(val);
+        } else if (!val.startsWith('http')) {
+            val = 'https://' + val;
+        }
+        getCurrentWebview().src = val;
+    }
+}
+
+function getCurrentWebview() { return document.getElementById(`wv-${activeTabId}`); }
+
+function toggleMenu() {
+    const menu = document.getElementById('side-menu');
+    menu.classList.toggle('open');
+    document.getElementById('overlay').style.display = menu.classList.contains('open') ? 'block' : 'none';
+    document.getElementById('history-list').innerHTML = historyData.slice(-15).reverse().map(h => `<div style="border-bottom:1px solid #333; padding:2px; font-size:9px; overflow:hidden; white-space:nowrap;">${h.url}</div>`).join('');
+}
+
+function setTheme(t) {
+    const r = document.querySelector(':root');
+    const themes = {
+        sea: { bg: '#000b1e', ui: '#001535', acc: '#0088ff', txt: '#00d9ff' },
+        tronic: { bg: '#1a0f00', ui: '#2d1a00', acc: '#ff8800', txt: '#ffcc00' },
+        bw: { bg: '#000', ui: '#111', acc: '#fff', txt: '#fff' },
+        grass: { bg: '#1b2e1b', ui: '#2d4a2d', acc: '#4caf50', txt: '#8bc34a' },
+        neon: { bg: '#000', ui: '#111', acc: '#ff4444', txt: '#ff4444' },
+        matrix: { bg: '#000', ui: '#000', acc: '#00ff00', txt: '#00ff00' }
+    };
+    const s = themes[t] || themes.sea;
+    r.style.setProperty('--main-bg', s.bg);
+    r.style.setProperty('--ui-bg', s.ui);
+    r.style.setProperty('--accent', s.acc);
+    r.style.setProperty('--text', s.txt);
+    localStorage.setItem('fisb_theme', t);\n    document.querySelectorAll('#side-menu .nav-btn').forEach(b => {\n        const action = b.getAttribute('onclick') || '';\n        b.classList.toggle('theme-btn-active', action === `setTheme('${t}')`);\n    });
+}
+
+function setLanguage(lang) {
+    const t = i18n[lang] || i18n.en;
+    document.getElementById('txt-settings').innerText = t.settings;
+    document.getElementById('txt-lang').innerText = t.lang + ":";
+    document.getElementById('txt-themes').innerText = t.themes + ":";
+    document.getElementById('txt-history').innerText = t.history + ":";
+    document.getElementById('url-input').placeholder = t.placeholder;
+    localStorage.setItem('fisb_lang', lang);\n    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', (b.getAttribute('onclick') || '').includes(`'${lang}'`)));
+}
+
+function handleGlobalKeys(e, wv) {
+    if (!wv) return;
+    if (e.key === 'F12') {
+        if (wv.isDevToolsOpened()) wv.closeDevTools();
+        else wv.openDevTools();
+    }
+    if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
+        const currentUrl = wv.getURL();
+        if (!currentUrl.startsWith('view-source:')) {
+            createNewTab('view-source:' + currentUrl);
+        }
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    handleGlobalKeys(e, getCurrentWebview());
+});
+
+let bookmarks = JSON.parse(localStorage.getItem('fisb_bookmarks')) || [];
+
+function addCurrentAsBookmark() {
+    const wv = getCurrentWebview();
+    const url = wv.getURL();
+    const title = document.getElementById(`title-wv-${activeTabId}`).innerText;
+    if (!bookmarks.find(b => b.url === url)) {
+        bookmarks.push({ title, url });
+        localStorage.setItem('fisb_bookmarks', JSON.stringify(bookmarks));
+        renderBookmarks();
+    }
+}
+
+function renderBookmarks() {
+    const list = document.getElementById('bookmarks-list');
+    list.innerHTML = bookmarks.map(b => `
+        <span class="bookmark" onclick="getCurrentWebview().src='${b.url}'" style="cursor:pointer; color: var(--text); margin-right:10px;">
+            ${b.title.substring(0, 15)}
+        </span>
+    `).join('');
+}
+
+// RAM-MITTARI LOGIIKKA
+setInterval(() => {
+    if (typeof process !== 'undefined' && process.getProcessMemoryInfo) {
+        process.getProcessMemoryInfo().then(info => {
+            const mb = (info.private / 1024).toFixed(1);
+            const statusEl = document.getElementById('mem-status');
+            if (statusEl) statusEl.innerText = `RAM Käyttö: ${mb} MB`;
+        }).catch(() => {});
+    }
+}, 5000);
+
+// ALUSTUS KUN IKKUNA AUKEAA
+window.onload = () => {
+    setTheme(localStorage.getItem('fisb_theme') || 'sea');
+    setLanguage(localStorage.getItem('fisb_lang') || 'fi');
+    renderBookmarks();
+    createNewTab(); // Tämä avaa sen ensimmäisen välilehden!
+    
+    fetch('https://ipwho.is/').then(r=>r.json()).then(d=>{
+        if(d.city) document.getElementById('location-status').innerText = `Location: ${d.city}, ${d.country_code}`;
+    }).catch(()=>{});
+};
 </script>
 </body>
 </html>
