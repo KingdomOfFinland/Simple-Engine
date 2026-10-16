@@ -103,6 +103,7 @@
         <button class="nav-btn" onclick="getCurrentWebview()?.reload()">↻</button>
         <input type="text" id="url-input" onkeypress="handleUrl(event)">
         <button class="nav-btn" onclick="addCurrentAsBookmark()">⭐</button>
+        <button class="nav-btn" onclick="openBrowserDevTools()" title="Toggle browser developer tools">DEV</button>
         <div onclick="toggleMenu()" style="cursor:pointer; font-size: 24px; padding: 0 10px; color: var(--accent);">☰</div>
         <div id="bookmarks-bar" style="display: flex; background: rgba(255,255,255,0.05); padding: 5px 12px; gap: 10px; border-bottom: 1px solid #333; font-size: 12px;">
     <span style="color: #666; margin-right: 5px;">⭐</span>
@@ -164,17 +165,9 @@ function createNewTab(url = "https://www.google.com") {
         historyData.push({url: e.url});
         localStorage.setItem('fisb_history', JSON.stringify(historyData.slice(-30)));
     });
+    // Leave website appearance unchanged; the selected theme applies to browser UI only.
 
-    // 🌙 Dark Mode & Näppäimet webviewin sisällä
-    wv.addEventListener('did-finish-load', () => {
-        wv.insertCSS(`
-            html, body { background-color: #121212 !important; color: #e0e0e0 !important; }
-            img, video { filter: brightness(.8) contrast(1.2); }
-            * { border-color: #333 !important; }
-        `);
-    });
-
-    wv.addEventListener('keydown', (e) => {
+wv.addEventListener('keydown', (e) => {
         handleGlobalKeys(e, wv);
     });
 
@@ -265,6 +258,14 @@ function setLanguage(lang) {
     document.getElementById('url-input').placeholder = t.placeholder;
     localStorage.setItem('fisb_lang', lang);
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', (b.getAttribute('onclick') || '').includes(`'${lang}'`)));
+}
+
+function openBrowserDevTools() {
+    try {
+        require('electron').ipcRenderer.send('toggle-browser-devtools');
+    } catch (error) {
+        console.error('Could not open browser DevTools:', error);
+    }
 }
 
 function handleGlobalKeys(e, wv) {
