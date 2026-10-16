@@ -1,84 +1,84 @@
+const { app, BrowserWindow, session, ipcMain } = require('electron');
+const path = require('path');
 
-// --- PÄIVITETTY createNewTab (Lisätty webview-kohtaiset kuuntelijat) ---
+let mainWindow = null;
 
-function createNewTab(url = "https://www.google.com") {
-    tabCount++;
-    const id = tabCount;
-    const tab = document.createElement('div');
-    tab.className = 'tab';
-    tab.id = `btn-wv-${id}`;
-    tab.innerHTML = `<span class="tab-title" id="title-wv-${id}">Ladataan...</span><span class="close-btn" onclick="closeTab(event, ${id})">×</span>`;
-    tab.onclick = () => switchTab(id);
-    document.getElementById('tabs-container').appendChild(tab);
+// Log certificate failures, but keep TLS certificate validation enabled.
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+  console.error('[CERT ERROR]', {
+    url,
+    error,
+    issuer: certificate && certificate.issuer,
+    subject: certificate && certificate.subject,
+    validFrom: certificate && certificate.validStart,
+    validTo: certificate && certificate.validExpiry
+  });
+  callback(false);
+});
 
-    const wv = document.createElement('webview');
-    wv.id = `wv-${id}`;
-    wv.src = url;
-    wv.setAttribute('useragent', "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-    
-    // TÄRKEÄ: Sallitaan koodin haku view-sourcea varten
-    wv.setAttribute('nodeintegration', ''); 
+// Hardware acceleration is enabled by default. This asks Chromium to try
+// GPUs that might otherwise be blocked; remove this switch if the old driver
+// causes visual glitches or crashes.
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
 
-    // Päivitetään otsikko
-    wv.addEventListener('page-title-updated', (e) => {
-        const titleEl = document.getElementById(`title-wv-${id}`);
-        if(titleEl) titleEl.innerText = e.title.substring(0, 18);
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 720,
+    backgroundColor: '#000000',
+    title: 'Fish Browser v2 | Bluefin Ultimate',
+    icon: path.join(__dirname, 'icon.png'),
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      webviewTag: true,
+      spellcheck: false
+    }
+  });
+
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  mainWindow.webContents.on('did-fail-load', (event, code, description, url) => {
+    if (code !== -3) console.error('[LOAD ERROR]', code, description, url);
+  });
+
+  mainWindow.on('page-title-updated', (event) => event.preventDefault());
+  mainWindow.setMenuBarVisibility(false);
+  mainWindow.on('closed', () => { mainWindow = null; });
+}
+
+ipcMain.on('toggle-browser-devtools', () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.webContents.isDevToolsOpened()) {
+    mainWindow.webContents.closeDevTools();
+  } else {
+    mainWindow.webContents.openDevTools();
+  }
+});
+
+app.whenReady().then(() => {
+  session.defaultSession.on('will-download', (event, item) => {
+    const filePath = path.join(app.getPath('downloads'), item.getFilename());
+    item.setSavePath(filePath);
+
+    item.on('updated', (event, state) => {
+      if (state === 'interrupted') console.error('Lataus keskeytyi');
     });
 
-    // Päivitetään URL-palkki
-    wv.addEventListener('did-navigate', (e) => {
-        if (activeTabId === id) document.getElementById('url-input').value = e.url;
-        historyData.push({url: e.url});
-        localStorage.setItem('fisb_history', JSON.stringify(historyData.slice(-30)));
+    item.once('done', (event, state) => {
+      if (state === 'completed') console.log('Lataus valmis: ' + filePath);
+      else console.error('Lataus epäonnistui: ' + state);
     });
+  });
 
-    // 🚀 LISÄTTY: Kuunnellaan näppäimiä myös webview'n SISÄLLÄ
-    wv.addEventListener('keydown', (e) => {
-        handleGlobalKeys(e, wv);
-    });
+  console.log('[GPU feature status]', app.getGPUFeatureStatus());
+  createWindow();
 
-    document.getElementById('content-area').appendChild(wv);
-    switchTab(id);
-}
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
 
-// --- LOPUT FUNKTIOT (Samat kuin aiemmin) ---
-function switchTab(id) {
-    activeTabId = id;
-    document.querySelectorAll('webview, .tab').forEach(el => el.classList.remove('active'));
-    const currentWv = document.getElementById(`wv-${id}`);
-    const currentBtn = document.getElementById(`btn-wv-${id}`);
-    if (currentWv && currentBtn) {
-        currentWv.classList.add('active');
-        currentBtn.classList.add('active');
-        try { document.getElementById('url-input').value = currentWv.getURL(); } catch(err) {}
-    }
-}
-
-function closeTab(e, id) {
-    e.stopPropagation();
-    document.getElementById(`btn-wv-${id}`)?.remove();
-    document.getElementById(`wv-${id}`)?.remove();
-    const rem = document.querySelectorAll('.tab');
-    if (rem.length > 0) {
-        const lastId = rem[rem.length - 1].id.replace('btn-wv-', '');
-        switchTab(parseInt(lastId));
-    } else {
-        createNewTab();
-    }
-}
-
-function handleUrl(e) {
-    if (e.key === 'Enter') {
-        let val = e.target.value;
-        if (!val.includes('.') && !val.startsWith('http')) {
-            val = 'https://www.google.com/search?q=' + encodeURIComponent(val);
-        } else if (!val.startsWith('http')) {
-            val = 'https://' + val;
-        }
-        getCurrentWebview().src = val;
-    }
-}
-
-function getCurrentWebview() { return document.getElementById(`wv-${activeTabId}`); }
-
-// ... (toggleMenu, setTheme, setLanguage pysyvät samoina)
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
